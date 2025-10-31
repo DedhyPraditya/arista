@@ -1,0 +1,31 @@
+name: Deploy to VM
+
+on:
+  push:
+    branches:
+      - main # Jalankan otomatis setiap push ke branch main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.8.0
+        with:
+          ssh-private-key: ${{ secrets.DEPLOY_KEY }}
+
+      - name: Deploy to VM
+        run: |
+          ssh -p ${{ secrets.SERVER_PORT }} -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "
+          cd /var/www/arista &&
+          git pull origin main &&
+          composer install --no-interaction --prefer-dist --optimize-autoloader &&
+          npm install &&
+          npm run build &&
+          php artisan migrate --force &&
+          php artisan optimize:clear
+          "
