@@ -90,7 +90,7 @@
                 <a class="collapse-item" href="{{ route('lokasi.index') }}">Lokasi Arsip</a>
                 <a class="collapse-item" href="{{ route('tingkat.index') }}">Tingkat Perkembangan</a>
                 <a class="collapse-item" href="{{ route('nasib.index') }}">Nasib Akhir</a>
-                <a class="collapse-item" href="#">Akses Keamanan</a>
+                {{-- <a class="collapse-item" href="#">Akses Keamanan</a> --}}
             </div>
         </div>
     </li>
