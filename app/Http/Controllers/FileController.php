@@ -20,23 +20,27 @@ class FileController extends Controller
 
         // Mengambil file dari semua model arsip
         $archiveFiles = collect();
-        
+
         // HKT Files
         $hktFiles = \App\Models\Hkt::whereNotNull('file_path')
             ->with(['unitPengelola', 'klasifikasi'])
             ->get()
             ->map(function ($item) {
+                $size = \Storage::disk('public')->exists($item->file_path) ? \Storage::disk('public')->size($item->file_path) : 0;
+                $formattedSize = $this->formatSize($size);
                 return (object) [
                     'id' => 'hkt_' . $item->id,
-                    'filename' => basename($item->file_path),
+                    // Gunakan prihal sebagai nama tampil agar lebih bermakna
+                    'filename' => $item->prihal,
                     'original_name' => basename($item->file_path),
                     'file_path' => $item->file_path,
-                    'file_size' => file_exists(public_path('storage/' . $item->file_path)) ? filesize(public_path('storage/' . $item->file_path)) : 0,
+                    'file_size' => $size,
+                    'formatted_size' => $formattedSize,
                     'mime_type' => 'application/pdf',
                     'archive_type' => 'HKT',
                     'archive_title' => $item->prihal,
                     'archive_number' => $item->nomor_surat,
-                    'unit_pengelola' => $item->unitPengelola->nama_unit ?? 'N/A',
+                    'unit_pengelola' => optional($item->unitPengelola)->unit_pengelola ?? 'N/A',
                     'created_at' => $item->created_at,
                     'updated_at' => $item->updated_at,
                     'uploader' => (object) ['name' => 'System'],
@@ -48,17 +52,20 @@ class FileController extends Controller
             ->with(['unitPengelola', 'klasifikasi'])
             ->get()
             ->map(function ($item) {
+                $size = \Storage::disk('public')->exists($item->file_path) ? \Storage::disk('public')->size($item->file_path) : 0;
+                $formattedSize = $this->formatSize($size);
                 return (object) [
                     'id' => 'keuangan_' . $item->id,
-                    'filename' => basename($item->file_path),
+                    'filename' => $item->prihal,
                     'original_name' => basename($item->file_path),
                     'file_path' => $item->file_path,
-                    'file_size' => file_exists(public_path('storage/' . $item->file_path)) ? filesize(public_path('storage/' . $item->file_path)) : 0,
+                    'file_size' => $size,
+                    'formatted_size' => $formattedSize,
                     'mime_type' => 'application/pdf',
                     'archive_type' => 'Keuangan',
                     'archive_title' => $item->prihal,
                     'archive_number' => $item->nomor_surat,
-                    'unit_pengelola' => $item->unitPengelola->nama_unit ?? 'N/A',
+                    'unit_pengelola' => optional($item->unitPengelola)->unit_pengelola ?? 'N/A',
                     'created_at' => $item->created_at,
                     'updated_at' => $item->updated_at,
                     'uploader' => (object) ['name' => 'System'],
@@ -70,17 +77,20 @@ class FileController extends Controller
             ->with(['unitPengelola', 'klasifikasi'])
             ->get()
             ->map(function ($item) {
+                $size = \Storage::disk('public')->exists($item->file_path) ? \Storage::disk('public')->size($item->file_path) : 0;
+                $formattedSize = $this->formatSize($size);
                 return (object) [
                     'id' => 'kelembagaan_' . $item->id,
-                    'filename' => basename($item->file_path),
+                    'filename' => $item->prihal,
                     'original_name' => basename($item->file_path),
                     'file_path' => $item->file_path,
-                    'file_size' => file_exists(public_path('storage/' . $item->file_path)) ? filesize(public_path('storage/' . $item->file_path)) : 0,
+                    'file_size' => $size,
+                    'formatted_size' => $formattedSize,
                     'mime_type' => 'application/pdf',
                     'archive_type' => 'Kelembagaan',
                     'archive_title' => $item->prihal,
                     'archive_number' => $item->nomor_surat,
-                    'unit_pengelola' => $item->unitPengelola->nama_unit ?? 'N/A',
+                    'unit_pengelola' => optional($item->unitPengelola)->unit_pengelola ?? 'N/A',
                     'created_at' => $item->created_at,
                     'updated_at' => $item->updated_at,
                     'uploader' => (object) ['name' => 'System'],
@@ -92,17 +102,20 @@ class FileController extends Controller
             ->with(['unitPengelola', 'klasifikasi'])
             ->get()
             ->map(function ($item) {
+                $size = \Storage::disk('public')->exists($item->file_path) ? \Storage::disk('public')->size($item->file_path) : 0;
+                $formattedSize = $this->formatSize($size);
                 return (object) [
                     'id' => 'kemahasiswaan_' . $item->id,
-                    'filename' => basename($item->file_path),
+                    'filename' => $item->prihal,
                     'original_name' => basename($item->file_path),
                     'file_path' => $item->file_path,
-                    'file_size' => file_exists(public_path('storage/' . $item->file_path)) ? filesize(public_path('storage/' . $item->file_path)) : 0,
+                    'file_size' => $size,
+                    'formatted_size' => $formattedSize,
                     'mime_type' => 'application/pdf',
                     'archive_type' => 'Kemahasiswaan',
                     'archive_title' => $item->prihal,
                     'archive_number' => $item->nomor_surat,
-                    'unit_pengelola' => $item->unitPengelola->nama_unit ?? 'N/A',
+                    'unit_pengelola' => optional($item->unitPengelola)->unit_pengelola ?? 'N/A',
                     'created_at' => $item->created_at,
                     'updated_at' => $item->updated_at,
                     'uploader' => (object) ['name' => 'System'],
@@ -114,17 +127,20 @@ class FileController extends Controller
             ->with(['unitPengelola', 'klasifikasi'])
             ->get()
             ->map(function ($item) {
+                $size = \Storage::disk('public')->exists($item->file_path) ? \Storage::disk('public')->size($item->file_path) : 0;
+                $formattedSize = $this->formatSize($size);
                 return (object) [
                     'id' => 'akademik_' . $item->id,
-                    'filename' => basename($item->file_path),
+                    'filename' => $item->prihal,
                     'original_name' => basename($item->file_path),
                     'file_path' => $item->file_path,
-                    'file_size' => file_exists(public_path('storage/' . $item->file_path)) ? filesize(public_path('storage/' . $item->file_path)) : 0,
+                    'file_size' => $size,
+                    'formatted_size' => $formattedSize,
                     'mime_type' => 'application/pdf',
                     'archive_type' => 'Akademik',
                     'archive_title' => $item->prihal,
                     'archive_number' => $item->nomor_surat,
-                    'unit_pengelola' => $item->unitPengelola->nama_unit ?? 'N/A',
+                    'unit_pengelola' => optional($item->unitPengelola)->unit_pengelola ?? 'N/A',
                     'created_at' => $item->created_at,
                     'updated_at' => $item->updated_at,
                     'uploader' => (object) ['name' => 'System'],
@@ -136,17 +152,20 @@ class FileController extends Controller
             ->with(['unitPengelola', 'klasifikasi'])
             ->get()
             ->map(function ($item) {
+                $size = \Storage::disk('public')->exists($item->file_path) ? \Storage::disk('public')->size($item->file_path) : 0;
+                $formattedSize = $this->formatSize($size);
                 return (object) [
                     'id' => 'sdpt_' . $item->id,
-                    'filename' => basename($item->file_path),
+                    'filename' => $item->prihal,
                     'original_name' => basename($item->file_path),
                     'file_path' => $item->file_path,
-                    'file_size' => file_exists(public_path('storage/' . $item->file_path)) ? filesize(public_path('storage/' . $item->file_path)) : 0,
+                    'file_size' => $size,
+                    'formatted_size' => $formattedSize,
                     'mime_type' => 'application/pdf',
                     'archive_type' => 'SDPT',
                     'archive_title' => $item->prihal,
                     'archive_number' => $item->nomor_surat,
-                    'unit_pengelola' => $item->unitPengelola->nama_unit ?? 'N/A',
+                    'unit_pengelola' => optional($item->unitPengelola)->unit_pengelola ?? 'N/A',
                     'created_at' => $item->created_at,
                     'updated_at' => $item->updated_at,
                     'uploader' => (object) ['name' => 'System'],
@@ -168,7 +187,7 @@ class FileController extends Controller
         $currentPage = request()->get('page', 1);
         $offset = ($currentPage - 1) * $perPage;
         $paginatedFiles = $allFiles->slice($offset, $perPage)->values();
-        
+
         // Buat pagination object
         $paginatedData = new \Illuminate\Pagination\LengthAwarePaginator(
             $paginatedFiles,
@@ -179,6 +198,21 @@ class FileController extends Controller
         );
 
         return view('files.index', compact('paginatedData'));
+    }
+
+    /**
+     * Helper untuk format ukuran file (dipakai oleh objek arsip virtual).
+     */
+    private function formatSize(int $bytes): string
+    {
+        if ($bytes <= 0) {
+            return 'Tidak tersedia';
+        }
+        $units = ['B', 'KB', 'MB', 'GB'];
+        for ($i = 0; $bytes > 1024 && $i < count($units) - 1; $i++) {
+            $bytes /= 1024;
+        }
+        return round($bytes, 2) . ' ' . $units[$i];
     }
 
     public function show(File $file)

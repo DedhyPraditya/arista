@@ -158,7 +158,7 @@
                     <thead>
                         <tr>
                             <th>No</th>
-                            <th>Nama File</th>
+                            <th>Nama File (Uraian)</th>
                             <th>Jenis Arsip</th>
                             <th>Judul Arsip</th>
                             <th>Nomor Surat</th>
@@ -175,7 +175,7 @@
                             <td>
                                 <div class="d-flex align-items-center">
                                     <i class="fas fa-file-pdf text-danger mr-2"></i>
-                                    <span title="{{ $file->original_name }}">{{ Str::limit($file->original_name, 30) }}</span>
+                                    <span title="Asli: {{ $file->original_name }}">{{ Str::limit($file->filename, 40) }}</span>
                                 </div>
                             </td>
                             <td>
@@ -204,11 +204,15 @@
                             <td>
                                 @php
                                     $bytes = $file->file_size;
-                                    $units = ['B', 'KB', 'MB', 'GB'];
-                                    for ($i = 0; $bytes > 1024 && $i < count($units) - 1; $i++) {
-                                        $bytes /= 1024;
+                                    if ($bytes > 0) {
+                                        $units = ['B', 'KB', 'MB', 'GB'];
+                                        for ($i = 0; $bytes > 1024 && $i < count($units) - 1; $i++) {
+                                            $bytes /= 1024;
+                                        }
+                                        $formattedSize = round($bytes, 2) . ' ' . $units[$i];
+                                    } else {
+                                        $formattedSize = 'Tidak tersedia';
                                     }
-                                    $formattedSize = round($bytes, 2) . ' ' . $units[$i];
                                 @endphp
                                 <small>{{ $formattedSize }}</small>
                             </td>
@@ -248,7 +252,7 @@
                     </tbody>
                 </table>
             </div>
-            
+
             <!-- Pagination -->
             <div class="d-flex justify-content-center">
                 {{ $paginatedData->links() }}
