@@ -1,14 +1,14 @@
 <x-guest-layout>
-    <div class="flex flex-col lg:flex-row min-h-screen">
-        <!-- Gambar untuk mobile (atas) dan desktop (kiri) -->
-        <div class="w-full h-48 lg:h-auto lg:w-1/2 bg-blue-500 bg-center lg:mt-16 lg:mr-8" style="background-image: url('{{ asset('sbadmin2/img/4886718.jpg') }}'); background-size: cover; background-position: center;">
+    <div class="flex flex-col md:flex-row min-h-screen">
+        <!-- Gambar untuk mobile (atas) dan tablet/desktop (kiri) -->
+        <div class="w-full h-48 md:h-auto md:w-1/2 bg-blue-500 bg-center md:mt-12 md:mr-6 lg:mt-16 lg:mr-8" style="background-image: url('{{ asset('sbadmin2/img/4886718.jpg') }}'); background-size: cover; background-position: center;">
             <!-- Gambar di sini -->
         </div>
 
         <!-- Kolom kanan untuk form login -->
-        <div class="w-full lg:w-1/2 flex justify-center items-center bg-blue-500 p-4 lg:p-0">
+        <div class="w-full md:w-1/2 flex justify-center items-center bg-blue-500 p-4 md:p-6 lg:p-0">
             <!-- Card untuk form login -->
-            <div class="w-full sm:w-3/4 lg:w-1/2 max-w-sm bg-white p-6 rounded-lg shadow-lg">
+            <div class="w-full sm:w-4/5 md:w-4/5 lg:w-1/2 max-w-md bg-white p-6 md:p-7 lg:p-6 rounded-lg shadow-lg">
                 <h1 class="text-2xl font-bold text-gray-800 text-center">Aplikasi Sistem Terstruktur Arsip</h1>
                 <h1 class="text-2xl font-bold text-gray-800 text-center mb-4">LLDIKTI WILAYAH IX</h1>
                 <form method="POST" action="{{ route('login') }}">
