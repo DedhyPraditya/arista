@@ -1,7 +1,7 @@
 <x-guest-layout>
     <div class="flex flex-col lg:flex-row min-h-screen">
-        <!-- Kolom kiri untuk gambar -->
-        <div class="hidden lg:block lg:w-1/2 bg-blue-500 bg-center" style="background-image: url('{{ asset('sbadmin2/img/4886718.jpg') }}'); background-size: cover; background-position: center; height: 70vh; margin-right: 2rem; margin-top: 4rem;">
+        <!-- Gambar untuk mobile (atas) dan desktop (kiri) -->
+        <div class="w-full h-48 lg:h-auto lg:w-1/2 bg-blue-500 bg-center lg:mt-16 lg:mr-8" style="background-image: url('{{ asset('sbadmin2/img/4886718.jpg') }}'); background-size: cover; background-position: center;">
             <!-- Gambar di sini -->
         </div>
 
