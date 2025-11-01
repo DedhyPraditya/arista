@@ -15,6 +15,12 @@ class DashboardController extends Controller
             // Menghitung total user
             $userCount = User::count();
 
+            // Menghitung total unit pengelola
+            $unitPengelolaCount = \App\Models\UnitPengelola::count();
+
+            // Menghitung total klasifikasi arsip
+            $klasifikasiCount = \App\Models\Klasifikasi::count();
+
             // Menggunakan model Eloquent untuk menghitung dokumen
             $categories = [
                 'HKT' => \App\Models\Hkt::class,
@@ -33,7 +39,7 @@ class DashboardController extends Controller
                 $count = $modelClass::whereNotNull('file_path')
                     ->where('file_path', 'like', '%.pdf')
                     ->count();
-                
+
                 $documentCounts[$categoryName] = $count;
                 $totalPdfCount += $count;
             }
@@ -43,17 +49,19 @@ class DashboardController extends Controller
             $totalPdfCount += $fileCount;
 
             // Data untuk dikirimkan ke view
-            return view('dashboard', compact('userCount', 'totalPdfCount', 'documentCounts'));
+            return view('dashboard', compact('userCount', 'unitPengelolaCount', 'klasifikasiCount', 'totalPdfCount', 'documentCounts'));
 
         } catch (\Exception $e) {
             Log::error('Dashboard error: ' . $e->getMessage());
-            
+
             // Fallback data jika terjadi error
             $userCount = 0;
+            $unitPengelolaCount = 0;
+            $klasifikasiCount = 0;
             $totalPdfCount = 0;
             $documentCounts = array_fill_keys(['HKT', 'Keuangan', 'Kelembagaan', 'Kemahasiswaan', 'Akademik', 'SDPT'], 0);
-            
-            return view('dashboard', compact('userCount', 'totalPdfCount', 'documentCounts'))
+
+            return view('dashboard', compact('userCount', 'unitPengelolaCount', 'klasifikasiCount', 'totalPdfCount', 'documentCounts'))
                 ->with('error', 'Terjadi kesalahan saat memuat data dashboard.');
         }
     }
