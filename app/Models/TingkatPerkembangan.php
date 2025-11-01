@@ -9,6 +9,7 @@ class TingkatPerkembangan extends Model
 {
     use HasFactory;
 
+    // Nama tabel mengikuti konvensi plural yang sekarang dipastikan oleh migrasi
     protected $table = 'tingkat_perkembangans';
     protected $fillable = ['tingkat_perkembangan'];
 

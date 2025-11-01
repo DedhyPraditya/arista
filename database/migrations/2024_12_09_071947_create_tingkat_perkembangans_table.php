@@ -11,7 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('tingkat_perkembangan', function (Blueprint $table) {
+    // Menggunakan nama tabel plural yang konsisten dengan model & validasi
+    Schema::create('tingkat_perkembangans', function (Blueprint $table) {
             $table->id();
             $table->string('tingkat_perkembangan');
             $table->timestamps();
@@ -23,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('tingkat_perkembangans');
+    Schema::dropIfExists('tingkat_perkembangans');
     }
 };
