@@ -32,6 +32,17 @@
             height: 280px;
             width: 100%;
         }
+        .card-hover {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            cursor: pointer;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.2) !important;
+        }
+        a.text-decoration-none:hover {
+            text-decoration: none !important;
+        }
     </style>
     @livewireStyles
 
