@@ -10,7 +10,7 @@ class NasibAkhirController extends Controller
 {
     public function index()
     {
-        $nasibAkhir = NasibAkhir::all();
+        $nasibAkhir = NasibAkhir::orderBy('created_at', 'desc')->paginate(10);
         return view('nasib.index', compact('nasibAkhir'));
     }
 

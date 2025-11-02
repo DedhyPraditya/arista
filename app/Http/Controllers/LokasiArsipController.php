@@ -10,7 +10,7 @@ class LokasiArsipController extends Controller
 {
     public function index()
     {
-        $lokasi = LokasiArsip::all();
+        $lokasi = LokasiArsip::orderBy('created_at', 'desc')->paginate(10);
         return view('lokasi.index', compact('lokasi'));
     }
 

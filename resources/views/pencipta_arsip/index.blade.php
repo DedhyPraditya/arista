@@ -40,9 +40,9 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach($penciptaArsip as $index => $item)
+                            @forelse($penciptaArsip as $index => $item)
                                 <tr>
-                                    <th class="text-center">{{ $index + 1 }}</td>
+                                    <th class="text-center">{{ $penciptaArsip->firstItem() + $index }}</td>
                                     <td>{{ $item->nama_departemen }}</td>
                                     <th class="text-center">
                                         <button class="btn btn-warning btn-sm" data-toggle="modal" data-target="#editModal{{ $item->id }}" title="Edit"><i class="fas fa-edit"></i></button>
@@ -56,9 +56,23 @@
                                         </form>
                                     </td>
                                 </tr>
-                            @endforeach
+                            @empty
+                                <tr>
+                                    <td colspan="3" class="text-center">Tidak ada data pencipta arsip</td>
+                                </tr>
+                            @endforelse
                         </tbody>
                     </table>
+                </div>
+
+                <!-- Pagination -->
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                    <div>
+                        Menampilkan {{ $penciptaArsip->firstItem() ?? 0 }} sampai {{ $penciptaArsip->lastItem() ?? 0 }} dari {{ $penciptaArsip->total() }} data
+                    </div>
+                    <div>
+                        {{ $penciptaArsip->links() }}
+                    </div>
                 </div>
             </div>
         </div>

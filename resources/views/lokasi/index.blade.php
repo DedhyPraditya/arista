@@ -40,9 +40,9 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($lokasi as $index => $item)
+                        @forelse ($lokasi as $index => $item)
                             <tr>
-                                <td class="text-center">{{ $index + 1 }}.</td>
+                                <td class="text-center">{{ $lokasi->firstItem() + $index }}.</td>
                                 <td>{{ $item->ruangan }}</td>
                                 <td>{{ $item->gedung }}</td>
                                 <td class="text-center">{{ $item->lemari }}</td>
@@ -58,9 +58,23 @@
                                     </form>
                                 </td>
                             </tr>
-                        @endforeach
+                        @empty
+                            <tr>
+                                <td colspan="8" class="text-center">Tidak ada data lokasi arsip</td>
+                            </tr>
+                        @endforelse
                     </tbody>
                 </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="d-flex justify-content-between align-items-center mt-3">
+                <div>
+                    Menampilkan {{ $lokasi->firstItem() ?? 0 }} sampai {{ $lokasi->lastItem() ?? 0 }} dari {{ $lokasi->total() }} data
+                </div>
+                <div>
+                    {{ $lokasi->links() }}
+                </div>
             </div>
         </div>
     </div>

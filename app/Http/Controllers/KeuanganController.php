@@ -18,8 +18,10 @@ class KeuanganController extends Controller
     public function index()
     {
         Log::info('Fetching all Keuangans');
-        $keuangans = Keuangan::with(['klasifikasi', 'tingkatPerkembangan', 'lokasiArsip', 'nasibAkhir', 'unitPengelola'])->get();
-        Log::info('Fetched Keuangans: ' . $keuangans->count() . ' records');
+        $keuangans = Keuangan::with(['klasifikasi', 'tingkatPerkembangan', 'lokasiArsip', 'nasibAkhir', 'unitPengelola'])
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+        Log::info('Fetched Keuangans: ' . $keuangans->total() . ' records');
 
         return view('keuangan.index', compact('keuangans'));
     }

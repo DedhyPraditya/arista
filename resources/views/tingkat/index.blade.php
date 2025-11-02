@@ -38,9 +38,9 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($tingkat as $index => $item)
+                        @forelse($tingkat as $index => $item)
                         <tr>
-                            <td class="text-center">{{ $index + 1 }}.</td>
+                            <td class="text-center">{{ $tingkat->firstItem() + $index }}.</td>
                             <td>{{ $item->tingkat_perkembangan }}</td>
                             <td class="text-center">
                                 <button class="btn btn-warning btn-sm" data-toggle="modal" data-target="#editModal{{ $item->id }}" title="Edit">
@@ -83,9 +83,23 @@
                                 </div>
                             </div>
                         </div>
-                        @endforeach
+                        @empty
+                        <tr>
+                            <td colspan="3" class="text-center">Tidak ada data tingkat perkembangan</td>
+                        </tr>
+                        @endforelse
                     </tbody>
                 </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="d-flex justify-content-between align-items-center mt-3">
+                <div>
+                    Menampilkan {{ $tingkat->firstItem() ?? 0 }} sampai {{ $tingkat->lastItem() ?? 0 }} dari {{ $tingkat->total() }} data
+                </div>
+                <div>
+                    {{ $tingkat->links() }}
+                </div>
             </div>
         </div>
     </div>

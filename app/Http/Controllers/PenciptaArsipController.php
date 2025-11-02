@@ -10,7 +10,7 @@ class PenciptaArsipController extends Controller
 {
     public function index()
     {
-        $penciptaArsip = PenciptaArsip::all();
+        $penciptaArsip = PenciptaArsip::orderBy('created_at', 'desc')->paginate(10);
         return view('pencipta_arsip.index', compact('penciptaArsip'));
     }
 

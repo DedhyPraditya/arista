@@ -18,8 +18,10 @@ class KelembagaanController extends Controller
     public function index()
     {
         Log::info('Fetching all Kelembagaans');
-        $kelembagaans = Kelembagaan::all();
-        Log::info('Fetched Kelembagaans: ' . $kelembagaans->count() . ' records');
+        $kelembagaans = Kelembagaan::with(['klasifikasi', 'tingkatPerkembangan', 'lokasiArsip', 'nasibAkhir', 'unitPengelola'])
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+        Log::info('Fetched Kelembagaans: ' . $kelembagaans->total() . ' records');
 
         return view('kelembagaan.index', compact('kelembagaans'));
     }

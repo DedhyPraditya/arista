@@ -90,6 +90,16 @@
                             </tbody>
                         </table>
                     </div>
+
+                    <!-- Pagination -->
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <div>
+                            Menampilkan {{ $hkts->firstItem() ?? 0 }} sampai {{ $hkts->lastItem() ?? 0 }} dari {{ $hkts->total() }} data
+                        </div>
+                        <div>
+                            {{ $hkts->links() }}
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

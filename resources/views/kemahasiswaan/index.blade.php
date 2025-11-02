@@ -90,6 +90,16 @@
                             </tbody>
                         </table>
                     </div>
+
+                    <!-- Pagination -->
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <div>
+                            Menampilkan {{ $kemahasiswaan->firstItem() ?? 0 }} sampai {{ $kemahasiswaan->lastItem() ?? 0 }} dari {{ $kemahasiswaan->total() }} data
+                        </div>
+                        <div>
+                            {{ $kemahasiswaan->links() }}
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

@@ -17,8 +17,10 @@ class HktController extends Controller
     public function index()
     {
         Log::info('Fetching all HKTs');
-        $hkts = Hkt::with(['klasifikasi', 'tingkatPerkembangan', 'lokasiArsip', 'nasibAkhir', 'unitPengelola'])->get();
-        Log::info('Fetched HKTs: ' . $hkts->count() . ' records');
+        $hkts = Hkt::with(['klasifikasi', 'tingkatPerkembangan', 'lokasiArsip', 'nasibAkhir', 'unitPengelola'])
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+        Log::info('Fetched HKTs: ' . $hkts->total() . ' records');
 
         return view('hkt.index', compact('hkts'));
     }

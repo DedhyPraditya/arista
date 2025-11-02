@@ -18,8 +18,10 @@ class KemahasiswaanController extends Controller
     public function index()
     {
         Log::info('Fetching all Kemahasiswaan records');
-        $kemahasiswaan = Kemahasiswaan::with(['unitPengelola', 'klasifikasi', 'tingkatPerkembangan', 'lokasiArsip', 'nasibAkhir'])->get();
-        Log::info('Fetched Kemahasiswaan: ' . $kemahasiswaan->count() . ' records');
+        $kemahasiswaan = Kemahasiswaan::with(['unitPengelola', 'klasifikasi', 'tingkatPerkembangan', 'lokasiArsip', 'nasibAkhir'])
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+        Log::info('Fetched Kemahasiswaan: ' . $kemahasiswaan->total() . ' records');
 
         return view('kemahasiswaan.index', compact('kemahasiswaan'));
     }

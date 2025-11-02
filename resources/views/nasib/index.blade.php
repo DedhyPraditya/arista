@@ -41,9 +41,9 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($nasibAkhir as $index => $nasib)
+                        @forelse($nasibAkhir as $index => $nasib)
                         <tr>
-                            <td class="text-center">{{ $index + 1 }}.</td>
+                            <td class="text-center">{{ $nasibAkhir->firstItem() + $index }}.</td>
                             <td>{{ $nasib->nasib_akhir }}</td>
                             <td class="text-center">
                                 <!-- Edit Button -->
@@ -89,9 +89,23 @@
                                 </div>
                             </div>
                         </div>
-                        @endforeach
+                        @empty
+                        <tr>
+                            <td colspan="3" class="text-center">Tidak ada data nasib akhir</td>
+                        </tr>
+                        @endforelse
                     </tbody>
                 </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="d-flex justify-content-between align-items-center mt-3">
+                <div>
+                    Menampilkan {{ $nasibAkhir->firstItem() ?? 0 }} sampai {{ $nasibAkhir->lastItem() ?? 0 }} dari {{ $nasibAkhir->total() }} data
+                </div>
+                <div>
+                    {{ $nasibAkhir->links() }}
+                </div>
             </div>
         </div>
     </div>

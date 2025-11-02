@@ -18,8 +18,10 @@ class AkademikController extends Controller
     public function index()
     {
         Log::info('Fetching all Akademik records');
-        $akademik = Akademik::with(['unitPengelola', 'klasifikasi', 'tingkatPerkembangan', 'lokasiArsip', 'nasibAkhir'])->get();
-        Log::info('Fetched Akademik: ' . $akademik->count() . ' records');
+        $akademik = Akademik::with(['unitPengelola', 'klasifikasi', 'tingkatPerkembangan', 'lokasiArsip', 'nasibAkhir'])
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+        Log::info('Fetched Akademik: ' . $akademik->total() . ' records');
 
         return view('akademik.index', compact('akademik'));
     }

@@ -11,7 +11,7 @@ class KlasifikasiController extends Controller
 {
     public function index()
     {
-        $klasifikasi = Klasifikasi::all();
+        $klasifikasi = Klasifikasi::orderBy('kode', 'asc')->paginate(10);
         return view('klasifikasi.index', compact('klasifikasi'));
     }
 

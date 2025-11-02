@@ -10,7 +10,7 @@ class TingkatPerkembanganController extends Controller
 {
     public function index()
     {
-        $tingkat = TingkatPerkembangan::all();
+        $tingkat = TingkatPerkembangan::orderBy('created_at', 'desc')->paginate(10);
         return view('tingkat.index', compact('tingkat'));
     }
 

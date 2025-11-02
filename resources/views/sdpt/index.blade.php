@@ -90,6 +90,16 @@
                             </tbody>
                         </table>
                     </div>
+
+                    <!-- Pagination -->
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <div>
+                            Menampilkan {{ $sdpt->firstItem() ?? 0 }} sampai {{ $sdpt->lastItem() ?? 0 }} dari {{ $sdpt->total() }} data
+                        </div>
+                        <div>
+                            {{ $sdpt->links() }}
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

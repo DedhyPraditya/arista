@@ -28,7 +28,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($klasifikasi as $item)
+                        @forelse ($klasifikasi as $item)
                             <tr>
                                 <td class="text-center">{{ $item->kode }}</td>
                                 <td>{{ $item->nama }}</td>
@@ -49,9 +49,23 @@
                                     </form>
                                 </td>
                             </tr>
-                        @endforeach
+                        @empty
+                            <tr>
+                                <td colspan="4" class="text-center">Tidak ada data klasifikasi</td>
+                            </tr>
+                        @endforelse
                     </tbody>
                 </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="d-flex justify-content-between align-items-center mt-3">
+                <div>
+                    Menampilkan {{ $klasifikasi->firstItem() ?? 0 }} sampai {{ $klasifikasi->lastItem() ?? 0 }} dari {{ $klasifikasi->total() }} data
+                </div>
+                <div>
+                    {{ $klasifikasi->links() }}
+                </div>
             </div>
         </div>
     </div>

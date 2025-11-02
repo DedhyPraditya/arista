@@ -18,8 +18,10 @@ class SdptController extends Controller
     public function index()
     {
         Log::info('Fetching all Sdpt records');
-        $sdpt = Sdpt::with(['unitPengelola', 'klasifikasi', 'tingkatPerkembangan', 'lokasiArsip', 'nasibAkhir'])->get();
-        Log::info('Fetched Sdpt: ' . $sdpt->count() . ' records');
+        $sdpt = Sdpt::with(['unitPengelola', 'klasifikasi', 'tingkatPerkembangan', 'lokasiArsip', 'nasibAkhir'])
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+        Log::info('Fetched Sdpt: ' . $sdpt->total() . ' records');
 
         return view('sdpt.index', compact('sdpt'));
     }
