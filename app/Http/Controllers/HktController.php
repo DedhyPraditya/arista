@@ -11,9 +11,12 @@ use App\Models\TingkatPerkembangan;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use RealRashid\SweetAlert\Facades\Alert;
+use App\Traits\FileUploadTrait;
+use App\Traits\ValidationMessagesTrait;
 
 class HktController extends Controller
 {
+    use FileUploadTrait, ValidationMessagesTrait;
     public function index()
     {
         Log::info('Fetching all HKTs');
@@ -52,49 +55,27 @@ class HktController extends Controller
         Log::info('Store method called');
         Log::info('Request Data: ', $request->all());
 
-        // Validasi input
-        $validated = $request->validate([
-            'nomor_surat' => 'required|string|max:255',
-            'tanggal_surat' => 'required|date',
-            'tahun_surat' => 'required|integer',
-            'pencipta_arsip' => 'required|string|max:255',
-            'unit_pengelola_id' => 'required|exists:unit_pengelolas,id',
-            'kode_klasifikasi_id' => 'required|exists:klasifikasi,id',
-            'prihal' => 'required|string|max:255',
-            'uraian_informasi' => 'required|string',
-            'tingkat_perkembangan_id' => 'required|exists:tingkat_perkembangans,id',
-            'lokasi_arsip_id' => 'required|exists:lokasi_arsips,id',
-            'jumlah_item' => 'required|integer',
-            'lampiran' => 'nullable|string',
-            'retensi' => 'required|integer',
-            'keterangan' => 'required|string|in:Aktif,Inaktif',
-            'nasib_akhir_id' => 'required|exists:nasib_akhir,id',
-            'file_path' => 'nullable|file|mimes:pdf|max:5120',
-        ]);
+        // Validasi input dengan pesan custom
+        $rules = $this->getCommonValidationRules();
+        $rules['file_path'] = $this->getFileValidationRules(false, 10240); // 10MB max
 
-        // Cek apakah ada file yang diupload
+        $validated = $request->validate(
+            $rules,
+            $this->getValidationMessages(),
+            $this->getAttributeNames()
+        );
+
+        // Upload file menggunakan trait
         if ($request->hasFile('file_path')) {
-            Log::info('File detected for upload');
+            $filePath = $this->uploadFile($request->file('file_path'), 'arsip/hkt');
 
-            // Pastikan file diupload dan disimpan dengan benar
-            try {
-                // Menyimpan file dan mendapatkan path
-                $filePath = $request->file('file_path')->store('hkts_files', 'public');
-                Log::info('File uploaded to: ' . $filePath);
-
-                // Menyimpan file path ke dalam data yang akan disimpan ke database
+            if ($filePath) {
                 $validated['file_path'] = $filePath;
-            } catch (\Exception $e) {
-                Log::error('Error while uploading file: ' . $e->getMessage());
-                return redirect()->back()->with('error', 'Terjadi kesalahan saat mengupload file.');
+                Log::info('File uploaded successfully to: ' . $filePath);
+            } else {
+                Alert::error('Gagal', 'Terjadi kesalahan saat mengupload file.');
+                return redirect()->back()->withInput();
             }
-        } else {
-            Log::warning('No file uploaded');
-        }
-
-        // Cek apakah file_path valid (terisi atau tidak)
-        if (empty($validated['file_path'])) {
-            Log::warning('File path is empty, data will be saved without file.');
         }
 
         // Membuat record HKT di database
@@ -153,14 +134,15 @@ class HktController extends Controller
         if ($request->hasFile('file_path')) {
             Log::info('New file detected for update');
 
-            if ($hkt->file_path) {
-                Log::info('Deleting old file');
-                Storage::disk('public')->delete($hkt->file_path);
-            }
+            $filePath = $this->uploadFile($request->file('file_path'), 'arsip/hkt', $hkt->file_path);
 
-            $filePath = $request->file('file_path')->store('hkts_files', 'public');
-            $validated['file_path'] = $filePath;
-            Log::info('New file uploaded to: ' . $filePath);
+            if ($filePath) {
+                $validated['file_path'] = $filePath;
+                Log::info('New file uploaded to: ' . $filePath);
+            } else {
+                Alert::error('Gagal', 'Terjadi kesalahan saat mengupload file.');
+                return redirect()->back()->withInput();
+            }
         }
 
         $hkt->update($validated);
@@ -173,11 +155,8 @@ class HktController extends Controller
     {
         Log::info('Destroy method called for HKT with ID: ' . $hkt->id);
 
-        // Delete file from storage
-        if ($hkt->file_path) {
-            Log::info('Deleting file from storage: ' . $hkt->file_path);
-            Storage::disk('public')->delete($hkt->file_path);
-        }
+            // Delete file from storage menggunakan trait
+            $this->deleteFile($hkt->file_path);
 
         $hkt->delete();
         Log::info('HKT with ID ' . $hkt->id . ' successfully deleted');

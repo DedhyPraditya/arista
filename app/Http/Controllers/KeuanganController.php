@@ -12,9 +12,13 @@ use App\Models\TingkatPerkembangan;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use RealRashid\SweetAlert\Facades\Alert;
+use App\Traits\FileUploadTrait;
+use App\Traits\ValidationMessagesTrait;
 
 class KeuanganController extends Controller
 {
+    use FileUploadTrait, ValidationMessagesTrait;
+
     public function index()
     {
         Log::info('Fetching all Keuangans');
@@ -51,39 +55,40 @@ class KeuanganController extends Controller
         Log::info('Store method called');
         Log::info('Request Data: ', $request->all());
 
-        // Validate input
-        $validated = $request->validate([
-            'nomor_surat' => 'required|string|max:255',
-            'tanggal_surat' => 'required|date',
-            'tahun_surat' => 'required|integer',
-            'pencipta_arsip' => 'required|string|max:255',
-            'unit_pengelola_id' => 'required|exists:unit_pengelolas,id',
-            'kode_klasifikasi_id' => 'required|exists:klasifikasi,id',
-            'prihal' => 'required|string|max:255',
-            'uraian_informasi' => 'required|string',
-            'tingkat_perkembangan_id' => 'required|exists:tingkat_perkembangans,id',
-            'lokasi_arsip_id' => 'required|exists:lokasi_arsips,id',
-            'jumlah_item' => 'required|integer',
-            'lampiran' => 'nullable|string',
-            'retensi' => 'required|integer',
-            'keterangan' => 'required|string|in:Aktif,Inaktif',
-            'nasib_akhir_id' => 'required|exists:nasib_akhir,id',
-            'file_path' => 'nullable|file|mimes:pdf|max:5120',
-        ]);
+            try {
+                // Validate input dengan pesan Indonesia
+                $rules = array_merge($this->getCommonValidationRules(), [
+                    'file_path' => $this->getFileValidationRules(false, 10240), // Optional, max 10MB
+                ]);
 
-        // Handle file upload
-        if ($request->hasFile('file_path')) {
-            Log::info('File detected for upload');
-            $filePath = $request->file('file_path')->store('keuangan_file', 'public');
-            Log::info('File uploaded to: ' . $filePath);
-            $validated['file_path'] = $filePath;
+                $validated = $request->validate($rules, $this->getValidationMessages(), $this->getAttributeNames());
+
+                // Handle file upload menggunakan trait
+                if ($request->hasFile('file_path')) {
+                    Log::info('File detected for upload');
+                    $filePath = $this->uploadFile($request->file('file_path'), 'arsip/keuangan');
+
+                    if (!$filePath) {
+                        Alert::error('Gagal', 'Upload file gagal. Silakan coba lagi.');
+                        return redirect()->back()->withInput();
+                    }
+
+                    $validated['file_path'] = $filePath;
+                    Log::info('File uploaded to: ' . $filePath);
+                }
+
+                // Create the Keuangan record
+                Keuangan::create($validated);
+                Alert::success('Berhasil', 'Data berhasil disimpan.');
+                Log::info('KEUANGAN record successfully created');
+                return redirect()->route('keuangan.index');
+
+            } catch (\Exception $e) {
+                Log::error('Error saving Keuangan: ' . $e->getMessage());
+                Alert::error('Gagal', 'Terjadi kesalahan saat menyimpan data.');
+                return redirect()->back()->withInput();
         }
 
-        // Create the HKT record
-        Keuangan::create($validated);
-        Alert::success('Berhasil', 'Data berhasil disimpan.');
-        Log::info('KEUANGAN record successfully created');
-        return redirect()->route('keuangan.index');
     }
 
     public function edit(Keuangan $keuangan)
@@ -105,56 +110,48 @@ class KeuanganController extends Controller
         Log::info('Update method called for Keuangan with ID: ' . $keuangan->id);
         Log::info('Request Data for Update: ', $request->all());
 
-        $validated = $request->validate([
-            'nomor_surat' => 'required|string|max:255',
-            'tanggal_surat' => 'required|date',
-            'tahun_surat' => 'required|integer',
-            'pencipta_arsip' => 'required|string|max:255',
-            'unit_pengelola_id' => 'required|exists:unit_pengelolas,id',
-            'kode_klasifikasi_id' => 'required|exists:klasifikasi,id',
-            'prihal' => 'required|string|max:255',
-            'uraian_informasi' => 'required|string',
-            'tingkat_perkembangan_id' => 'required|exists:tingkat_perkembangans,id',
-            'lokasi_arsip_id' => 'required|exists:lokasi_arsips,id',
-            'jumlah_item' => 'required|integer',
-            'lampiran' => 'nullable|string',
-            'retensi' => 'required|integer',
-            'keterangan' => 'required|string|in:Aktif,Inaktif',
-            'nasib_akhir_id' => 'required|exists:nasib_akhirs,id',
-            'file_path' => 'nullable|file|mimes:pdf|max:5120',
-        ]);
+            try {
+                // Validate input dengan pesan Indonesia
+                $rules = array_merge($this->getCommonValidationRules(), [
+                    'file_path' => $this->getFileValidationRules(false, 10240), // Optional, max 10MB
+                ]);
 
-        Log::info('Validated Data for Update: ', $validated);
+                $validated = $request->validate($rules, $this->getValidationMessages(), $this->getAttributeNames());
+                Log::info('Validated Data for Update: ', $validated);
 
-        // Handle file upload
-        if ($request->hasFile('file_path')) {
-            Log::info('New file detected for update');
+                // Handle file upload menggunakan trait (otomatis hapus file lama)
+                if ($request->hasFile('file_path')) {
+                    Log::info('New file detected for update');
+                    $filePath = $this->uploadFile($request->file('file_path'), 'arsip/keuangan', $keuangan->file_path);
 
-            if ($keuangan->file_path) {
-                Log::info('Deleting old file');
-                Storage::disk('public')->delete($keuangan->file_path);
+                    if (!$filePath) {
+                        Alert::error('Gagal', 'Upload file gagal. Silakan coba lagi.');
+                        return redirect()->back()->withInput();
+                    }
+
+                    $validated['file_path'] = $filePath;
+                    Log::info('New file uploaded to: ' . $filePath);
             }
 
-            $filePath = $request->file('file_path')->store('keuangans_files', 'public');
-            $validated['file_path'] = $filePath;
-            Log::info('New file uploaded to: ' . $filePath);
+                $keuangan->update($validated);
+                Log::info('Keuangan with ID ' . $keuangan->id . ' successfully updated');
+                Alert::success('Berhasil', 'Data Keuangan berhasil diupdate.');
+                return redirect()->route('keuangan.index');
+
+            } catch (\Exception $e) {
+                Log::error('Error updating Keuangan: ' . $e->getMessage());
+                Alert::error('Gagal', 'Terjadi kesalahan saat mengupdate data.');
+                return redirect()->back()->withInput();
         }
 
-        $keuangan->update($validated);
-        Log::info('Keuangan with ID ' . $keuangan->id . ' successfully updated');
-        Alert::success('Berhasil', 'Data Keuangan berhasil diupdate.');
-        return redirect()->route('keuangan.index');
     }
 
     public function destroy(Keuangan $keuangan)
     {
         Log::info('Destroy method called for Keuangan with ID: ' . $keuangan->id);
 
-        // Delete file from storage
-        if ($keuangan->file_path) {
-            Log::info('Deleting file from storage: ' . $keuangan->file_path);
-            Storage::disk('public')->delete($keuangan->file_path);
-        }
+            // Delete file from storage menggunakan trait
+            $this->deleteFile($keuangan->file_path);
 
         $keuangan->delete();
         Log::info('Keuangan with ID ' . $keuangan->id . ' successfully deleted');

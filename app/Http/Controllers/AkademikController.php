@@ -12,9 +12,12 @@ use App\Models\TingkatPerkembangan;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use RealRashid\SweetAlert\Facades\Alert;
+use App\Traits\FileUploadTrait;
+use App\Traits\ValidationMessagesTrait;
 
 class AkademikController extends Controller
 {
+    use FileUploadTrait, ValidationMessagesTrait;
     public function index()
     {
         Log::info('Fetching all Akademik records');
@@ -50,40 +53,35 @@ class AkademikController extends Controller
     {
         Log::info('Store method called for Akademik');
         Log::info('Request Data: ', $request->all());
+            try {
+                $rules = array_merge($this->getCommonValidationRules(), [
+                    'jumlah_item' => 'required|integer|min:0',
+                    'lampiran' => 'nullable|string|max:255',
+                    'file_path' => $this->getFileValidationRules(false, 10240),
+                ]);
 
-        // Validate input
-        $validated = $request->validate([
-            'nomor_surat' => 'required|string|max:255',
-            'tanggal_surat' => 'required|date',
-            'tahun_surat' => 'required|integer',
-            'pencipta_arsip' => 'required|string|max:255',
-            'unit_pengelola_id' => 'required|exists:unit_pengelolas,id',
-            'kode_klasifikasi_id' => 'required|exists:klasifikasi,id',
-            'prihal' => 'required|string|max:255',
-            'uraian_informasi' => 'required|string',
-            'tingkat_perkembangan_id' => 'required|exists:tingkat_perkembangans,id',
-            'lokasi_arsip_id' => 'required|exists:lokasi_arsips,id',
-            'retensi' => 'required|integer',
-            'keterangan' => 'required|string|in:Aktif,Inaktif',
-            'nasib_akhir_id' => 'required|exists:nasib_akhir,id',
-            'jumlah_item' => 'required|integer',
-            'lampiran' => 'nullable|string|max:255',
-            'file_path' => 'nullable|file|mimes:pdf|max:5120',
-        ]);
+                $validated = $request->validate($rules, $this->getValidationMessages(), $this->getAttributeNames());
 
-        // Handle file upload
-        if ($request->hasFile('file_path')) {
-            Log::info('File detected for upload');
-            $filePath = $request->file('file_path')->store('akademik_files', 'public');
-            Log::info('File uploaded to: ' . $filePath);
-            $validated['file_path'] = $filePath;
-        }
+                if ($request->hasFile('file_path')) {
+                    Log::info('File detected for upload');
+                    $filePath = $this->uploadFile($request->file('file_path'), 'arsip/akademik');
+                    if (!$filePath) {
+                        Alert::error('Gagal', 'Upload file gagal.');
+                        return redirect()->back()->withInput();
+                    }
+                    $validated['file_path'] = $filePath;
+                    Log::info('File uploaded to: ' . $filePath);
+                }
 
-        // Create the Akademik record
-        Akademik::create($validated);
-        Alert::success('Berhasil', 'Data Akademik berhasil disimpan.');
-        Log::info('Akademik record successfully created');
-        return redirect()->route('akademik.index');
+                Akademik::create($validated);
+                Alert::success('Berhasil', 'Data Akademik berhasil disimpan.');
+                Log::info('Akademik record successfully created');
+                return redirect()->route('akademik.index');
+            } catch (\Exception $e) {
+                Log::error('Error saving Akademik: ' . $e->getMessage());
+                Alert::error('Gagal', 'Terjadi kesalahan saat menyimpan data.');
+                return redirect()->back()->withInput();
+            }
     }
 
     public function edit(Akademik $akademik)
@@ -104,62 +102,45 @@ class AkademikController extends Controller
     {
         Log::info('Update method called for Akademik with ID: ' . $akademik->id);
         Log::info('Request Data for Update: ', $request->all());
+            try {
+                $rules = array_merge($this->getCommonValidationRules(), [
+                    'jumlah_item' => 'required|integer|min:0',
+                    'lampiran' => 'nullable|string|max:255',
+                    'file_path' => $this->getFileValidationRules(false, 10240),
+                ]);
 
-        // Validate input
-        $validated = $request->validate([
-            'nomor_surat' => 'required|string|max:255',
-            'tanggal_surat' => 'required|date',
-            'tahun_surat' => 'required|integer',
-            'pencipta_arsip' => 'required|string|max:255',
-            'unit_pengelola_id' => 'required|exists:unit_pengelolas,id',
-            'kode_klasifikasi_id' => 'required|exists:klasifikasi,id',
-            'prihal' => 'required|string|max:255',
-            'uraian_informasi' => 'required|string',
-            'tingkat_perkembangan_id' => 'required|exists:tingkat_perkembangans,id',
-            'lokasi_arsip_id' => 'required|exists:lokasi_arsips,id',
-            'retensi' => 'required|integer',
-            'keterangan' => 'required|string|in:Aktif,Inaktif',
-            'nasib_akhir_id' => 'required|exists:nasib_akhir,id',
-            'jumlah_item' => 'required|integer',
-            'lampiran' => 'nullable|string|max:255',
-            'file_path' => 'nullable|file|mimes:pdf|max:5120',
-        ]);
+                $validated = $request->validate($rules, $this->getValidationMessages(), $this->getAttributeNames());
+                Log::info('Validated Data for Update: ', $validated);
 
-        Log::info('Validated Data for Update: ', $validated);
+                if ($request->hasFile('file_path')) {
+                    Log::info('New file detected for update');
+                    $filePath = $this->uploadFile($request->file('file_path'), 'arsip/akademik', $akademik->file_path);
+                    if (!$filePath) {
+                        Alert::error('Gagal', 'Upload file gagal.');
+                        return redirect()->back()->withInput();
+                    }
+                    $validated['file_path'] = $filePath;
+                    Log::info('New file uploaded to: ' . $filePath);
+                }
 
-        // Handle file upload
-        if ($request->hasFile('file_path')) {
-            Log::info('New file detected for update');
-
-            if ($akademik->file_path) {
-                Log::info('Deleting old file');
-                Storage::disk('public')->delete($akademik->file_path);
+                $akademik->update($validated);
+                Log::info('Akademik with ID ' . $akademik->id . ' successfully updated');
+                Alert::success('Berhasil', 'Data Akademik berhasil diupdate.');
+                return redirect()->route('akademik.index');
+            } catch (\Exception $e) {
+                Log::error('Error updating Akademik: ' . $e->getMessage());
+                Alert::error('Gagal', 'Terjadi kesalahan saat mengupdate data.');
+                return redirect()->back()->withInput();
             }
-
-            $filePath = $request->file('file_path')->store('akademik_files', 'public');
-            $validated['file_path'] = $filePath;
-            Log::info('New file uploaded to: ' . $filePath);
-        }
-
-        $akademik->update($validated);
-        Log::info('Akademik with ID ' . $akademik->id . ' successfully updated');
-        Alert::success('Berhasil', 'Data Akademik berhasil diupdate.');
-        return redirect()->route('akademik.index');
     }
 
     public function destroy(Akademik $akademik)
     {
         Log::info('Destroy method called for Akademik with ID: ' . $akademik->id);
-
-        // Delete file from storage
-        if ($akademik->file_path) {
-            Log::info('Deleting file from storage: ' . $akademik->file_path);
-            Storage::disk('public')->delete($akademik->file_path);
-        }
-
-        $akademik->delete();
-        Log::info('Akademik with ID ' . $akademik->id . ' successfully deleted');
-        Alert::success('Berhasil', 'Data Akademik berhasil dihapus.');
-        return redirect()->route('akademik.index');
+            $this->deleteFile($akademik->file_path);
+            $akademik->delete();
+            Log::info('Akademik with ID ' . $akademik->id . ' successfully deleted');
+            Alert::success('Berhasil', 'Data Akademik berhasil dihapus.');
+            return redirect()->route('akademik.index');
     }
 }
