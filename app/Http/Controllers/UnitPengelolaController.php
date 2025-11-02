@@ -10,7 +10,7 @@ class UnitPengelolaController extends Controller
 {
     public function index()
     {
-        $units = UnitPengelola::all();
+        $units = UnitPengelola::orderBy('created_at', 'desc')->paginate(10);
         return view('unit.index', compact('units'));
     }
 

@@ -36,9 +36,9 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($units as $index => $unit)
+                        @forelse ($units as $index => $unit)
                             <tr>
-                                <td class="text-center">{{ $index + 1 }}.</td>
+                                <td class="text-center">{{ $units->firstItem() + $index }}.</td>
                                 <td>{{ $unit->unit_pengelola }}</td>
                                 <td class="text-center">
                                     <button class="btn btn-warning btn-sm" data-toggle="modal" data-target="#editModal{{ $unit->id }}" title="Edit"><i class="fas fa-edit"></i></button>
@@ -49,9 +49,23 @@
                                     </form>
                                 </td>
                             </tr>
-                        @endforeach
+                        @empty
+                            <tr>
+                                <td colspan="3" class="text-center">Tidak ada data unit pengelola</td>
+                            </tr>
+                        @endforelse
                     </tbody>
                 </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="d-flex justify-content-between align-items-center mt-3">
+                <div>
+                    Menampilkan {{ $units->firstItem() ?? 0 }} sampai {{ $units->lastItem() ?? 0 }} dari {{ $units->total() }} data
+                </div>
+                <div>
+                    {{ $units->links() }}
+                </div>
             </div>
         </div>
     </div>
