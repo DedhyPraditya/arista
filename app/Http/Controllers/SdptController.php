@@ -18,15 +18,22 @@ use App\Traits\ValidationMessagesTrait;
 class SdptController extends Controller
 {
     use FileUploadTrait, ValidationMessagesTrait;
-    public function index()
+    public function index(Request $request)
     {
-        Log::info('Fetching all Sdpt records');
-        $sdpt = Sdpt::with(['unitPengelola', 'klasifikasi', 'tingkatPerkembangan', 'lokasiArsip', 'nasibAkhir'])
-            ->orderBy('created_at', 'desc')
-            ->paginate(10);
-        Log::info('Fetched Sdpt: ' . $sdpt->total() . ' records');
-
-        return view('sdpt.index', compact('sdpt'));
+        Log::info('Fetching Sdpt with filters', $request->query());
+        $query = Sdpt::with(['unitPengelola','klasifikasi','tingkatPerkembangan','lokasiArsip','nasibAkhir'])->orderBy('created_at','desc');
+        if ($request->filled('nomor_surat')) $query->where('nomor_surat','like','%'.$request->nomor_surat.'%');
+        if ($request->filled('tahun_surat')) $query->where('tahun_surat',$request->tahun_surat);
+        if ($request->filled('unit_pengelola_id')) $query->where('unit_pengelola_id',$request->unit_pengelola_id);
+        if ($request->filled('kode_klasifikasi_id')) $query->where('kode_klasifikasi_id',$request->kode_klasifikasi_id);
+        if ($request->filled('keterangan')) $query->where('keterangan',$request->keterangan);
+        if ($request->filled('nasib_akhir_id')) $query->where('nasib_akhir_id',$request->nasib_akhir_id);
+        $sdpt = $query->paginate(10)->withQueryString();
+        Log::info('Fetched Sdpt after filter: '.$sdpt->total().' records');
+        $unitPengelolas = UnitPengelola::select('id','unit_pengelola')->orderBy('unit_pengelola')->get();
+        $klasifikasis = Klasifikasi::select('id','nama')->orderBy('nama')->get();
+        $nasibAkhirs = NasibAkhir::select('id','nasib_akhir')->orderBy('nasib_akhir')->get();
+        return view('sdpt.index', compact('sdpt','unitPengelolas','klasifikasis','nasibAkhirs'));
     }
 
     public function show(Sdpt $sdpt)

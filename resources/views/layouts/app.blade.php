@@ -43,6 +43,18 @@
         a.text-decoration-none:hover {
             text-decoration: none !important;
         }
+        /* Loading Overlay */
+        #loading-overlay {
+            position: fixed;
+            top: 0; left: 0; right:0; bottom:0;
+            background: rgba(255,255,255,0.7);
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+        .spinner-border { width: 3rem; height: 3rem; }
     </style>
     @livewireStyles
 
@@ -62,6 +74,16 @@
         </div>
     </div>
 
+    <!-- Loading Overlay -->
+    <div id="loading-overlay">
+        <div class="text-center">
+            <div class="spinner-border text-primary" role="status">
+                <span class="sr-only">Loading...</span>
+            </div>
+            <p class="mt-3 font-weight-bold text-primary">Memproses...</p>
+        </div>
+    </div>
+
     <script src="{{ asset('sbadmin2/vendor/jquery/jquery.min.js') }}"></script>
     <script src="{{ asset('sbadmin2/vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
     <script src="{{asset('vendor/jquery-easing/jquery.easing.min.js') }}"></script>
@@ -73,5 +95,23 @@
     <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     @include('sweetalert::alert')
     @livewireScripts
+    @stack('scripts')
+    <script>
+        // Tampilkan overlay saat submit form
+        document.addEventListener('DOMContentLoaded', function() {
+            const overlay = document.getElementById('loading-overlay');
+            document.querySelectorAll('form').forEach(form => {
+                form.addEventListener('submit', function() {
+                    // Jangan tampilkan jika form punya attribute data-no-loading
+                    if (form.hasAttribute('data-no-loading')) return;
+                    overlay.style.display = 'flex';
+                });
+            });
+            // Sembunyikan overlay ketika halaman sudah dimuat ulang penuh (optional fallback)
+            window.addEventListener('pageshow', function() {
+                overlay.style.display = 'none';
+            });
+        });
+    </script>
 </body>
 </html>

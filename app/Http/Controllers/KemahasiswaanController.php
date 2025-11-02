@@ -18,15 +18,22 @@ use App\Traits\ValidationMessagesTrait;
 class KemahasiswaanController extends Controller
 {
     use FileUploadTrait, ValidationMessagesTrait;
-    public function index()
+    public function index(Request $request)
     {
-        Log::info('Fetching all Kemahasiswaan records');
-        $kemahasiswaan = Kemahasiswaan::with(['unitPengelola', 'klasifikasi', 'tingkatPerkembangan', 'lokasiArsip', 'nasibAkhir'])
-            ->orderBy('created_at', 'desc')
-            ->paginate(10);
-        Log::info('Fetched Kemahasiswaan: ' . $kemahasiswaan->total() . ' records');
-
-        return view('kemahasiswaan.index', compact('kemahasiswaan'));
+        Log::info('Fetching Kemahasiswaan with filters', $request->query());
+        $query = Kemahasiswaan::with(['unitPengelola','klasifikasi','tingkatPerkembangan','lokasiArsip','nasibAkhir'])->orderBy('created_at','desc');
+        if ($request->filled('nomor_surat')) $query->where('nomor_surat','like','%'.$request->nomor_surat.'%');
+        if ($request->filled('tahun_surat')) $query->where('tahun_surat',$request->tahun_surat);
+        if ($request->filled('unit_pengelola_id')) $query->where('unit_pengelola_id',$request->unit_pengelola_id);
+        if ($request->filled('kode_klasifikasi_id')) $query->where('kode_klasifikasi_id',$request->kode_klasifikasi_id);
+        if ($request->filled('keterangan')) $query->where('keterangan',$request->keterangan);
+        if ($request->filled('nasib_akhir_id')) $query->where('nasib_akhir_id',$request->nasib_akhir_id);
+        $kemahasiswaan = $query->paginate(10)->withQueryString();
+        Log::info('Fetched Kemahasiswaan after filter: '.$kemahasiswaan->total().' records');
+        $unitPengelolas = UnitPengelola::select('id','unit_pengelola')->orderBy('unit_pengelola')->get();
+        $klasifikasis = Klasifikasi::select('id','nama')->orderBy('nama')->get();
+        $nasibAkhirs = NasibAkhir::select('id','nasib_akhir')->orderBy('nasib_akhir')->get();
+        return view('kemahasiswaan.index', compact('kemahasiswaan','unitPengelolas','klasifikasis','nasibAkhirs'));
     }
 
     public function show(Kemahasiswaan $kemahasiswaan)

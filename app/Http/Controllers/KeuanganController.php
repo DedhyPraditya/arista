@@ -19,15 +19,39 @@ class KeuanganController extends Controller
 {
     use FileUploadTrait, ValidationMessagesTrait;
 
-    public function index()
+    public function index(Request $request)
     {
-        Log::info('Fetching all Keuangans');
-        $keuangans = Keuangan::with(['klasifikasi', 'tingkatPerkembangan', 'lokasiArsip', 'nasibAkhir', 'unitPengelola'])
-            ->orderBy('created_at', 'desc')
-            ->paginate(10);
-        Log::info('Fetched Keuangans: ' . $keuangans->total() . ' records');
+        Log::info('Fetching Keuangan with filters', $request->query());
 
-        return view('keuangan.index', compact('keuangans'));
+        $query = Keuangan::with(['klasifikasi', 'tingkatPerkembangan', 'lokasiArsip', 'nasibAkhir', 'unitPengelola'])->orderBy('created_at', 'desc');
+
+        if ($request->filled('nomor_surat')) {
+            $query->where('nomor_surat', 'like', '%' . $request->nomor_surat . '%');
+        }
+        if ($request->filled('tahun_surat')) {
+            $query->where('tahun_surat', $request->tahun_surat);
+        }
+        if ($request->filled('unit_pengelola_id')) {
+            $query->where('unit_pengelola_id', $request->unit_pengelola_id);
+        }
+        if ($request->filled('kode_klasifikasi_id')) {
+            $query->where('kode_klasifikasi_id', $request->kode_klasifikasi_id);
+        }
+        if ($request->filled('keterangan')) {
+            $query->where('keterangan', $request->keterangan);
+        }
+        if ($request->filled('nasib_akhir_id')) {
+            $query->where('nasib_akhir_id', $request->nasib_akhir_id);
+        }
+
+        $keuangans = $query->paginate(10)->withQueryString();
+        Log::info('Fetched Keuangans after filter: ' . $keuangans->total() . ' records');
+
+        $unitPengelolas = UnitPengelola::select('id','unit_pengelola')->orderBy('unit_pengelola')->get();
+        $klasifikasis = Klasifikasi::select('id','nama')->orderBy('nama')->get();
+        $nasibAkhirs = NasibAkhir::select('id','nasib_akhir')->orderBy('nasib_akhir')->get();
+
+        return view('keuangan.index', compact('keuangans','unitPengelolas','klasifikasis','nasibAkhirs'));
     }
 
     public function show(Keuangan $keuangan)

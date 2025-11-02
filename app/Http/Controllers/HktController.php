@@ -17,15 +17,41 @@ use App\Traits\ValidationMessagesTrait;
 class HktController extends Controller
 {
     use FileUploadTrait, ValidationMessagesTrait;
-    public function index()
+    public function index(Request $request)
     {
-        Log::info('Fetching all HKTs');
-        $hkts = Hkt::with(['klasifikasi', 'tingkatPerkembangan', 'lokasiArsip', 'nasibAkhir', 'unitPengelola'])
-            ->orderBy('created_at', 'desc')
-            ->paginate(10);
-        Log::info('Fetched HKTs: ' . $hkts->total() . ' records');
+        Log::info('Fetching HKTs with filters', $request->query());
 
-        return view('hkt.index', compact('hkts'));
+        $query = Hkt::with(['klasifikasi', 'tingkatPerkembangan', 'lokasiArsip', 'nasibAkhir', 'unitPengelola'])->orderBy('created_at', 'desc');
+
+        // Apply filters jika ada
+        if ($request->filled('nomor_surat')) {
+            $query->where('nomor_surat', 'like', '%' . $request->nomor_surat . '%');
+        }
+        if ($request->filled('tahun_surat')) {
+            $query->where('tahun_surat', $request->tahun_surat);
+        }
+        if ($request->filled('unit_pengelola_id')) {
+            $query->where('unit_pengelola_id', $request->unit_pengelola_id);
+        }
+        if ($request->filled('kode_klasifikasi_id')) {
+            $query->where('kode_klasifikasi_id', $request->kode_klasifikasi_id);
+        }
+        if ($request->filled('keterangan')) {
+            $query->where('keterangan', $request->keterangan);
+        }
+        if ($request->filled('nasib_akhir_id')) {
+            $query->where('nasib_akhir_id', $request->nasib_akhir_id);
+        }
+
+        $hkts = $query->paginate(10)->withQueryString();
+        Log::info('Fetched HKTs after filter: ' . $hkts->total() . ' records');
+
+        // Data untuk dropdown filter
+        $unitPengelolas = UnitPengelola::select('id', 'unit_pengelola')->orderBy('unit_pengelola')->get();
+        $klasifikasis = Klasifikasi::select('id', 'nama')->orderBy('nama')->get();
+        $nasibAkhirs = NasibAkhir::select('id', 'nasib_akhir')->orderBy('nasib_akhir')->get();
+
+        return view('hkt.index', compact('hkts', 'unitPengelolas', 'klasifikasis', 'nasibAkhirs'));
     }
 
     public function show(Hkt $hkt)

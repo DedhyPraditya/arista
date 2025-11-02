@@ -18,15 +18,22 @@ use App\Traits\ValidationMessagesTrait;
 class AkademikController extends Controller
 {
     use FileUploadTrait, ValidationMessagesTrait;
-    public function index()
+    public function index(Request $request)
     {
-        Log::info('Fetching all Akademik records');
-        $akademik = Akademik::with(['unitPengelola', 'klasifikasi', 'tingkatPerkembangan', 'lokasiArsip', 'nasibAkhir'])
-            ->orderBy('created_at', 'desc')
-            ->paginate(10);
-        Log::info('Fetched Akademik: ' . $akademik->total() . ' records');
-
-        return view('akademik.index', compact('akademik'));
+        Log::info('Fetching Akademik with filters', $request->query());
+        $query = Akademik::with(['unitPengelola','klasifikasi','tingkatPerkembangan','lokasiArsip','nasibAkhir'])->orderBy('created_at','desc');
+        if ($request->filled('nomor_surat')) $query->where('nomor_surat','like','%'.$request->nomor_surat.'%');
+        if ($request->filled('tahun_surat')) $query->where('tahun_surat',$request->tahun_surat);
+        if ($request->filled('unit_pengelola_id')) $query->where('unit_pengelola_id',$request->unit_pengelola_id);
+        if ($request->filled('kode_klasifikasi_id')) $query->where('kode_klasifikasi_id',$request->kode_klasifikasi_id);
+        if ($request->filled('keterangan')) $query->where('keterangan',$request->keterangan);
+        if ($request->filled('nasib_akhir_id')) $query->where('nasib_akhir_id',$request->nasib_akhir_id);
+        $akademik = $query->paginate(10)->withQueryString();
+        Log::info('Fetched Akademik after filter: '.$akademik->total().' records');
+        $unitPengelolas = UnitPengelola::select('id','unit_pengelola')->orderBy('unit_pengelola')->get();
+        $klasifikasis = Klasifikasi::select('id','nama')->orderBy('nama')->get();
+        $nasibAkhirs = NasibAkhir::select('id','nasib_akhir')->orderBy('nasib_akhir')->get();
+        return view('akademik.index', compact('akademik','unitPengelolas','klasifikasis','nasibAkhirs'));
     }
 
     public function show(Akademik $akademik)
