@@ -24,12 +24,16 @@ class KlasifikasiController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'kode' => 'required|unique:klasifikasi|max:10',
+            'kode' => 'required|unique:klasifikasi|max:20',
+            'urusan' => 'nullable|string|max:255',
+            'sub_urusan' => 'nullable|string',
             'nama' => 'required|max:255',
-            'retensi' => 'required|integer',
+            'retensi' => 'required|integer|min:0',
         ], [
-            'kode.required' => 'Kode wajib diisi.',
-            'kode.unique' => 'Kode sudah digunakan.',
+            'kode.required' => 'Kode klasifikasi wajib diisi.',
+            'kode.unique' => 'Kode klasifikasi sudah digunakan.',
+            'nama.required' => 'Nama/judul wajib diisi.',
+            'retensi.required' => 'Retensi wajib diisi.',
             'retensi.integer' => 'Retensi harus berupa angka.',
         ]);
 
@@ -48,9 +52,11 @@ class KlasifikasiController extends Controller
     public function update(Request $request, $id)
     {
         $request->validate([
-            'kode' => 'required',
-            'nama' => 'required',
-            'retensi' => 'required|integer',
+            'kode' => 'required|max:20',
+            'urusan' => 'nullable|string|max:255',
+            'sub_urusan' => 'nullable|string',
+            'nama' => 'required|max:255',
+            'retensi' => 'required|integer|min:0',
         ]);
 
         $klasifikasi = Klasifikasi::findOrFail($id);

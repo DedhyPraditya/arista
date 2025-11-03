@@ -22,6 +22,8 @@
                     <thead>
                         <tr>
                             <th class="text-center">Kode</th>
+                            <th class="text-center">Urusan</th>
+                            <th class="text-center">Sub Urusan</th>
                             <th class="text-center">Nama</th>
                             <th class="text-center">Retensi</th>
                             <th class="text-center">Aksi</th>
@@ -30,9 +32,25 @@
                     <tbody>
                         @forelse ($klasifikasi as $item)
                             <tr>
-                                <td class="text-center">{{ $item->kode }}</td>
+                                <td class="text-center"><strong>{{ $item->kode }}</strong></td>
+                                <td>
+                                    @if($item->urusan)
+                                        <span class="badge badge-primary badge-pill">Urusan</span>
+                                        <br><small>{{ $item->urusan }}</small>
+                                    @else
+                                        <span class="text-muted">-</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    @if($item->sub_urusan)
+                                        <span class="badge badge-info badge-pill">Sub-urusan</span>
+                                        <br><small>{{ Str::limit($item->sub_urusan, 80) }}</small>
+                                    @else
+                                        <span class="text-muted">-</span>
+                                    @endif
+                                </td>
                                 <td>{{ $item->nama }}</td>
-                                <td class="text-center">{{ $item->retensi }} tahun</td>
+                                <td class="text-center"><span class="badge badge-secondary">{{ $item->retensi }} th</span></td>
                                 <td class="text-center">
                                     <!-- Edit Button to Trigger Edit Modal -->
                                     <button class="btn btn-sm btn-warning" data-toggle="modal" data-target="#editModal{{ $item->id }}">
@@ -51,7 +69,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="4" class="text-center">Tidak ada data klasifikasi</td>
+                                <td colspan="6" class="text-center">Tidak ada data klasifikasi</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -85,16 +103,30 @@
                 @csrf
                 <div class="modal-body">
                     <div class="form-group">
-                        <label for="kode">Kode</label>
-                        <input type="text" class="form-control" id="kode" name="kode" required>
+                        <label for="kode">Kode Klasifikasi</label>
+                        <input type="text" class="form-control" id="kode" name="kode" placeholder="Contoh: PR.00.00" required>
                     </div>
                     <div class="form-group">
-                        <label for="nama">Nama</label>
+                        <label for="urusan">
+                            <span class="badge badge-primary badge-pill">Urusan</span> Urusan Utama
+                        </label>
+                        <input type="text" class="form-control" id="urusan" name="urusan" placeholder="Contoh: Pokok-Pokok Kebijakan Strategis">
+                        <small class="form-text text-muted">Kategori utama dari klasifikasi (A, B, C, dst)</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="sub_urusan">
+                            <span class="badge badge-info badge-pill">Sub-urusan</span> Sub Urusan / Detail
+                        </label>
+                        <textarea class="form-control" id="sub_urusan" name="sub_urusan" rows="2" placeholder="Contoh: Rencana Pembangunan Jangka Panjang (RPJP)"></textarea>
+                        <small class="form-text text-muted">Detail atau penjabaran dari urusan utama (1, 2, 3, dst atau a, b, c, dst)</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="nama">Nama/Judul</label>
                         <input type="text" class="form-control" id="nama" name="nama" required>
                     </div>
                     <div class="form-group">
-                        <label for="retensi">Retensi</label>
-                        <input type="number" class="form-control" id="retensi" name="retensi" required>
+                        <label for="retensi">Retensi (Tahun)</label>
+                        <input type="number" class="form-control" id="retensi" name="retensi" placeholder="Contoh: 5" required>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -122,15 +154,29 @@
                 @method('PUT')
                 <div class="modal-body">
                     <div class="form-group">
-                        <label for="kode">Kode</label>
+                        <label for="kode">Kode Klasifikasi</label>
                         <input type="text" class="form-control" id="kode" name="kode" value="{{ old('kode', $item->kode) }}" required>
                     </div>
                     <div class="form-group">
-                        <label for="nama">Nama</label>
+                        <label for="urusan">
+                            <span class="badge badge-primary badge-pill">Urusan</span> Urusan Utama
+                        </label>
+                        <input type="text" class="form-control" id="urusan" name="urusan" value="{{ old('urusan', $item->urusan) }}">
+                        <small class="form-text text-muted">Kategori utama dari klasifikasi (A, B, C, dst)</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="sub_urusan">
+                            <span class="badge badge-info badge-pill">Sub-urusan</span> Sub Urusan / Detail
+                        </label>
+                        <textarea class="form-control" id="sub_urusan" name="sub_urusan" rows="2">{{ old('sub_urusan', $item->sub_urusan) }}</textarea>
+                        <small class="form-text text-muted">Detail atau penjabaran dari urusan utama (1, 2, 3, dst atau a, b, c, dst)</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="nama">Nama/Judul</label>
                         <input type="text" class="form-control" id="nama" name="nama" value="{{ old('nama', $item->nama) }}" required>
                     </div>
                     <div class="form-group">
-                        <label for="retensi">Retensi</label>
+                        <label for="retensi">Retensi (Tahun)</label>
                         <input type="number" class="form-control" id="retensi" name="retensi" value="{{ old('retensi', $item->retensi) }}" required>
                     </div>
                 </div>

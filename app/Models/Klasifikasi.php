@@ -10,7 +10,7 @@ class Klasifikasi extends Model
     use HasFactory;
 
     protected $table = 'klasifikasi'; // Atur nama tabel
-    protected $fillable = ['kode', 'nama', 'retensi'];
+    protected $fillable = ['kode', 'urusan', 'sub_urusan', 'nama', 'retensi'];
 
     public function hkts()
     {
