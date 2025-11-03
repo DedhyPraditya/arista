@@ -37,5 +37,17 @@ class Hkt extends Model
     {
         return $this->belongsTo(UnitPengelola::class, 'unit_pengelola_id');
     }
+
+    /**
+     * Accessor dinamis untuk status aktif / inaktif berdasar tanggal_surat + retensi (tahun).
+     */
+    public function getStatusAktifAttribute(): string
+    {
+        if (!$this->tanggal_surat || !$this->retensi || $this->retensi < 0) {
+            return 'Aktif';
+        }
+        $expiry = \Carbon\Carbon::parse($this->tanggal_surat)->addYears($this->retensi);
+        return now()->greaterThanOrEqualTo($expiry) ? 'Inaktif' : 'Aktif';
+    }
 }
 

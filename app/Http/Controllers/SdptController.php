@@ -64,10 +64,19 @@ class SdptController extends Controller
                 $rules = array_merge($this->getCommonValidationRules(), [
                     'jumlah_item' => 'required|integer|min:0',
                     'lampiran' => 'nullable|string|max:255',
-                    'file_path' => $this->getFileValidationRules(false, 10240),
+                    'file_path' => 'nullable|' . $this->getFileValidationRules(false, 10240),
                 ]);
 
                 $validated = $request->validate($rules, $this->getValidationMessages(), $this->getAttributeNames());
+
+                // Auto-fill retensi dari klasifikasi
+                $klasifikasi = Klasifikasi::find($validated['kode_klasifikasi_id']);
+                if ($klasifikasi) {
+                    $validated['retensi'] = $klasifikasi->retensi;
+                }
+                if (empty($validated['tahun_surat']) && !empty($validated['tanggal_surat'])) {
+                    $validated['tahun_surat'] = (int)\Carbon\Carbon::parse($validated['tanggal_surat'])->year;
+                }
 
                 if ($request->hasFile('file_path')) {
                     Log::info('File detected for upload');
@@ -113,11 +122,22 @@ class SdptController extends Controller
                 $rules = array_merge($this->getCommonValidationRules(), [
                     'jumlah_item' => 'required|integer|min:0',
                     'lampiran' => 'nullable|string|max:255',
-                    'file_path' => $this->getFileValidationRules(false, 10240),
+                    'file_path' => 'nullable|' . $this->getFileValidationRules(false, 10240),
                 ]);
 
                 $validated = $request->validate($rules, $this->getValidationMessages(), $this->getAttributeNames());
                 Log::info('Validated Data for Update: ', $validated);
+
+                // Auto-fill retensi jika klasifikasi berubah
+                if (isset($validated['kode_klasifikasi_id'])) {
+                    $klasifikasi = Klasifikasi::find($validated['kode_klasifikasi_id']);
+                    if ($klasifikasi) {
+                        $validated['retensi'] = $klasifikasi->retensi;
+                    }
+                }
+                if (isset($validated['tanggal_surat'])) {
+                    $validated['tahun_surat'] = (int)\Carbon\Carbon::parse($validated['tanggal_surat'])->year;
+                }
 
                 if ($request->hasFile('file_path')) {
                     Log::info('New file detected for update');

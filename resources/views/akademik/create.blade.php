@@ -100,19 +100,19 @@
                                     </select>
                                 </div>
 
-                                <!-- Retensi -->
+                                <!-- Retensi (otomatis dari klasifikasi) -->
                                 <div class="form-group">
-                                    <label for="retensi">Retensi</label>
-                                    <input type="text" name="retensi" id="retensi" class="form-control" required>
+                                    <label for="retensi_display">Retensi (Tahun)</label>
+                                    <input type="text" id="retensi_display" class="form-control" readonly placeholder="Otomatis diisi dari Klasifikasi">
+                                    <input type="hidden" name="retensi" id="retensi" value="">
+                                    <small class="form-text text-muted">Retensi akan diisi otomatis berdasarkan Klasifikasi yang dipilih.</small>
                                 </div>
 
-                                <!-- Keterangan -->
+                                <!-- Keterangan / Catatan -->
                                 <div class="form-group">
-                                    <label for="keterangan">Keterangan</label>
-                                    <select name="keterangan" id="keterangan" class="form-control">
-                                        <option value="Aktif">Aktif</option>
-                                        <option value="Inaktif">Inaktif</option>
-                                    </select>
+                                    <label for="keterangan">Catatan</label>
+                                    <textarea name="keterangan" id="keterangan" class="form-control" rows="2" placeholder="Catatan tambahan (opsional)"></textarea>
+                                    <small class="form-text text-muted">Status aktif/inaktif dihitung otomatis berdasarkan tanggal surat & retensi.</small>
                                 </div>
 
                                 <!-- Nasib Akhir -->
@@ -139,8 +139,9 @@
 
                                 <!-- Upload File -->
                                 <div class="form-group">
-                                    <label for="file_path">Upload File (Max. 5 Mbps)</label>
-                                    <input type="file" name="file_path" id="file_path" class="form-control" required>
+                                    <label for="file_path">Upload File (Opsional, Max. 10 MB)</label>
+                                    <input type="file" name="file_path" id="file_path" class="form-control">
+                                    <small class="form-text text-muted" id="file_info">Belum ada file dipilih.</small>
                                 </div>
                             </div>
                         </div>
@@ -155,3 +156,47 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Data klasifikasi untuk auto-fill retensi
+    const klasifikasiData = {!! json_encode($klasifikasi->map(fn($k) => ['id' => $k->id, 'retensi' => $k->retensi])) !!};
+
+    const klasifikasiSelect = document.getElementById('kode_klasifikasi_id');
+    const retensiInput = document.getElementById('retensi');
+    const retensiDisplay = document.getElementById('retensi_display');
+
+    // Auto-fill retensi saat klasifikasi dipilih
+    klasifikasiSelect?.addEventListener('change', function() {
+        const selectedId = parseInt(this.value);
+        const selected = klasifikasiData.find(k => k.id === selectedId);
+        if (selected) {
+            retensiInput.value = selected.retensi; // hidden field (angka saja)
+            retensiDisplay.value = selected.retensi + ' tahun'; // display field
+        } else {
+            retensiInput.value = '';
+            retensiDisplay.value = '';
+        }
+    });
+
+    // Preview file name saat dipilih
+    const fileInput = document.getElementById('file_path');
+    const fileInfo = document.getElementById('file_info');
+
+    fileInput?.addEventListener('change', function() {
+        if (this.files && this.files[0]) {
+            const file = this.files[0];
+            const sizeMB = (file.size / 1024 / 1024).toFixed(2);
+            fileInfo.textContent = `📁 ${file.name} (${sizeMB} MB)`;
+            fileInfo.classList.remove('text-muted');
+            fileInfo.classList.add('text-primary', 'font-weight-bold');
+        } else {
+            fileInfo.textContent = 'Belum ada file dipilih.';
+            fileInfo.classList.remove('text-primary', 'font-weight-bold');
+            fileInfo.classList.add('text-muted');
+        }
+    });
+});
+</script>
+@endpush

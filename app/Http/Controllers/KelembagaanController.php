@@ -62,10 +62,19 @@ class KelembagaanController extends Controller
         Log::info('Request Data: ', $request->all());
             try {
                 $rules = array_merge($this->getCommonValidationRules(), [
-                    'file_path' => $this->getFileValidationRules(false, 10240),
+                    'file_path' => 'nullable|' . $this->getFileValidationRules(false, 10240),
                 ]);
 
                 $validated = $request->validate($rules, $this->getValidationMessages(), $this->getAttributeNames());
+
+                // Auto-fill retensi dari klasifikasi
+                $klasifikasi = Klasifikasi::find($validated['kode_klasifikasi_id']);
+                if ($klasifikasi) {
+                    $validated['retensi'] = $klasifikasi->retensi;
+                }
+                if (empty($validated['tahun_surat']) && !empty($validated['tanggal_surat'])) {
+                    $validated['tahun_surat'] = (int)\Carbon\Carbon::parse($validated['tanggal_surat'])->year;
+                }
 
                 if ($request->hasFile('file_path')) {
                     Log::info('File detected for upload');
@@ -106,10 +115,21 @@ class KelembagaanController extends Controller
         Log::info('Update method called for Kelembagaan with ID: ' . $kelembagaan->id);
             try {
                 $rules = array_merge($this->getCommonValidationRules(), [
-                    'file_path' => $this->getFileValidationRules(false, 10240),
+                    'file_path' => 'nullable|' . $this->getFileValidationRules(false, 10240),
                 ]);
 
                 $validated = $request->validate($rules, $this->getValidationMessages(), $this->getAttributeNames());
+
+                // Auto-fill retensi jika klasifikasi berubah
+                if (isset($validated['kode_klasifikasi_id'])) {
+                    $klasifikasi = Klasifikasi::find($validated['kode_klasifikasi_id']);
+                    if ($klasifikasi) {
+                        $validated['retensi'] = $klasifikasi->retensi;
+                    }
+                }
+                if (isset($validated['tanggal_surat'])) {
+                    $validated['tahun_surat'] = (int)\Carbon\Carbon::parse($validated['tanggal_surat'])->year;
+                }
 
                 if ($request->hasFile('file_path')) {
                     $filePath = $this->uploadFile($request->file('file_path'), 'arsip/kelembagaan', $kelembagaan->file_path);

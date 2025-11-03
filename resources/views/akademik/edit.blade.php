@@ -103,17 +103,19 @@
                             </select>
                         </div>
 
+                        <!-- Retensi (otomatis dari klasifikasi) -->
                         <div class="form-group">
-                            <label for="retensi">Tahun Aktif</label>
-                            <input type="number" name="retensi" id="retensi" class="form-control" value="{{ old('retensi', $akademik->retensi) }}" required>
+                            <label for="retensi_display">Retensi (Tahun)</label>
+                            <input type="text" id="retensi_display" class="form-control" value="{{ old('retensi', $akademik->retensi) }}" readonly>
+                            <input type="hidden" name="retensi" id="retensi" value="{{ old('retensi', $akademik->retensi) }}">
+                            <small class="form-text text-muted">Retensi akan diperbarui jika klasifikasi diubah.</small>
                         </div>
 
+                        <!-- Keterangan / Catatan -->
                         <div class="form-group">
-                            <label for="keterangan">Keterangan</label>
-                            <select name="keterangan" id="keterangan" class="form-control" required>
-                                <option value="Aktif" {{ $akademik->keterangan == 'Aktif' ? 'selected' : '' }}>Aktif</option>
-                                <option value="Inaktif" {{ $akademik->keterangan == 'Inaktif' ? 'selected' : '' }}>Inaktif</option>
-                            </select>
+                            <label for="keterangan">Catatan</label>
+                            <textarea name="keterangan" id="keterangan" class="form-control" rows="2" placeholder="Catatan tambahan (opsional)">{{ old('keterangan', $akademik->keterangan) }}</textarea>
+                            <small class="form-text text-muted">Status saat ini: <strong>{{ $akademik->status_aktif }}</strong> (dihitung otomatis).</small>
                         </div>
 
                         <div class="form-group">
@@ -138,12 +140,20 @@
                             <input type="text" name="lampiran" id="lampiran" class="form-control" value="{{ old('lampiran', $akademik->lampiran) }}" required>
                         </div>
 
+                        <!-- Upload File -->
                         <div class="form-group">
-                            <label for="file_path">Upload File (PDF)</label>
-                            <input type="file" name="file_path" id="file_path" class="form-control-file">
+                            <label for="file_path">Upload File (Opsional, Max. 10 MB)</label>
+                            <input type="file" name="file_path" id="file_path" class="form-control">
                             @if($akademik->file_path)
-                                <small>File saat ini: <a href="{{ Storage::url($akademik->file_path) }}" target="_blank">Lihat File</a></small>
+                                <small class="form-text text-info">File saat ini: <a href="{{ Storage::url($akademik->file_path) }}" target="_blank">Lihat File</a></small>
                             @endif
+                            <small class="form-text text-muted" id="file_info">
+                                @if($akademik->file_path)
+                                    File baru belum dipilih (file lama tetap digunakan).
+                                @else
+                                    Belum ada file dipilih.
+                                @endif
+                            </small>
                         </div>
                     </div>
                 </div>
@@ -158,3 +168,44 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Data klasifikasi untuk auto-fill retensi
+    const klasifikasiData = {!! json_encode($klasifikasi->map(fn($k) => ['id' => $k->id, 'retensi' => $k->retensi])) !!};
+
+    const klasifikasiSelect = document.getElementById('kode_klasifikasi_id');
+    const retensiInput = document.getElementById('retensi');
+    const retensiDisplay = document.getElementById('retensi_display');
+
+    // Auto-fill retensi saat klasifikasi diubah
+    klasifikasiSelect?.addEventListener('change', function() {
+        const selectedId = parseInt(this.value);
+        const selected = klasifikasiData.find(k => k.id === selectedId);
+        if (selected) {
+            retensiInput.value = selected.retensi; // hidden field
+            retensiDisplay.value = selected.retensi; // display field
+        }
+    });
+
+    // Preview file name saat dipilih
+    const fileInput = document.getElementById('file_path');
+    const fileInfo = document.getElementById('file_info');
+
+    fileInput?.addEventListener('change', function() {
+        if (this.files && this.files[0]) {
+            const file = this.files[0];
+            const sizeMB = (file.size / 1024 / 1024).toFixed(2);
+            fileInfo.textContent = `📁 File baru: ${file.name} (${sizeMB} MB)`;
+            fileInfo.classList.remove('text-muted');
+            fileInfo.classList.add('text-primary', 'font-weight-bold');
+        } else {
+            fileInfo.textContent = '{{ $akademik->file_path ? "File baru belum dipilih (file lama tetap digunakan)." : "Belum ada file dipilih." }}';
+            fileInfo.classList.remove('text-primary', 'font-weight-bold');
+            fileInfo.classList.add('text-muted');
+        }
+    });
+});
+</script>
+@endpush

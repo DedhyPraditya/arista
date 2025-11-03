@@ -73,4 +73,16 @@ class Keuangan extends Model
     {
         return $this->tanggal_surat->format('d-m-Y');
     }
+
+    /**
+     * Accessor dinamis untuk status aktif / inaktif berdasar tanggal_surat + retensi (tahun).
+     */
+    public function getStatusAktifAttribute(): string
+    {
+        if (!$this->tanggal_surat || !$this->retensi || $this->retensi < 0) {
+            return 'Aktif';
+        }
+        $expiry = $this->tanggal_surat->copy()->addYears($this->retensi);
+        return now()->greaterThanOrEqualTo($expiry) ? 'Inaktif' : 'Aktif';
+    }
 }

@@ -54,4 +54,18 @@ class Akademik extends Model
     {
         return $query->where('keterangan', 'Aktif');
     }
+
+    /**
+     * Accessor dinamis untuk status aktif / inaktif berdasar tanggal_surat + retensi (tahun).
+     * Jika tanggal_surat + retensi tahun <= hari ini maka Inaktif, selain itu Aktif.
+     */
+    public function getStatusAktifAttribute(): string
+    {
+        // Pastikan data minimal ada
+        if (!$this->tanggal_surat || !$this->retensi || $this->retensi < 0) {
+            return 'Aktif';
+        }
+        $expiry = $this->tanggal_surat->copy()->addYears($this->retensi);
+        return now()->greaterThanOrEqualTo($expiry) ? 'Inaktif' : 'Aktif';
+    }
 }

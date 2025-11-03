@@ -82,10 +82,20 @@ class KeuanganController extends Controller
             try {
                 // Validate input dengan pesan Indonesia
                 $rules = array_merge($this->getCommonValidationRules(), [
-                    'file_path' => $this->getFileValidationRules(false, 10240), // Optional, max 10MB
+                    'file_path' => 'nullable|' . $this->getFileValidationRules(false, 10240), // Optional, max 10MB
                 ]);
 
                 $validated = $request->validate($rules, $this->getValidationMessages(), $this->getAttributeNames());
+
+                // Auto-fill retensi dari klasifikasi
+                $klasifikasi = Klasifikasi::find($validated['kode_klasifikasi_id']);
+                if ($klasifikasi) {
+                    $validated['retensi'] = $klasifikasi->retensi;
+                }
+                // Sinkron tahun_surat
+                if (empty($validated['tahun_surat']) && !empty($validated['tanggal_surat'])) {
+                    $validated['tahun_surat'] = (int)\Carbon\Carbon::parse($validated['tanggal_surat'])->year;
+                }
 
                 // Handle file upload menggunakan trait
                 if ($request->hasFile('file_path')) {
@@ -137,11 +147,23 @@ class KeuanganController extends Controller
             try {
                 // Validate input dengan pesan Indonesia
                 $rules = array_merge($this->getCommonValidationRules(), [
-                    'file_path' => $this->getFileValidationRules(false, 10240), // Optional, max 10MB
+                    'file_path' => 'nullable|' . $this->getFileValidationRules(false, 10240), // Optional, max 10MB
                 ]);
 
                 $validated = $request->validate($rules, $this->getValidationMessages(), $this->getAttributeNames());
                 Log::info('Validated Data for Update: ', $validated);
+
+                // Auto-fill retensi jika klasifikasi berubah
+                if (isset($validated['kode_klasifikasi_id'])) {
+                    $klasifikasi = Klasifikasi::find($validated['kode_klasifikasi_id']);
+                    if ($klasifikasi) {
+                        $validated['retensi'] = $klasifikasi->retensi;
+                    }
+                }
+                // Sinkron tahun_surat
+                if (isset($validated['tanggal_surat'])) {
+                    $validated['tahun_surat'] = (int)\Carbon\Carbon::parse($validated['tanggal_surat'])->year;
+                }
 
                 // Handle file upload menggunakan trait (otomatis hapus file lama)
                 if ($request->hasFile('file_path')) {

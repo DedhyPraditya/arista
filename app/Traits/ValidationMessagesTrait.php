@@ -89,8 +89,8 @@ trait ValidationMessagesTrait
             'lokasi_arsip_id' => 'required|exists:lokasi_arsips,id',
             'jumlah_item' => 'nullable|integer|min:0',
             'lampiran' => 'nullable|string|max:255',
-            'retensi' => 'required|integer|min:0|max:100',
-            'keterangan' => 'required|string|in:Aktif,Inaktif',
+            'retensi' => 'nullable|integer|min:0|max:100',
+            'keterangan' => 'nullable|string',
             'nasib_akhir_id' => 'required|exists:nasib_akhir,id',
         ];
     }
