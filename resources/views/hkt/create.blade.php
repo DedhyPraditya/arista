@@ -57,10 +57,17 @@
                                 <div class="form-group">
                                     <label for="kode_klasifikasi_id">Kode Klasifikasi</label>
                                     <select name="kode_klasifikasi_id" id="kode_klasifikasi_id" class="form-control" required>
+                                        <option value="">-- Pilih Kode Klasifikasi --</option>
                                         @foreach($klasifikasi as $k)
-                                            <option value="{{ $k->id }}">{{ $k->nama }}</option>
+                                            <option value="{{ $k->id }}">
+                                                {{ $k->kode }}
+                                                @if($k->urusan) - {{ Str::limit($k->urusan, 30) }} @endif
+                                                @if($k->sub_urusan) - {{ Str::limit($k->sub_urusan, 40) }} @endif
+                                                ({{ $k->retensi }} th)
+                                            </option>
                                         @endforeach
                                     </select>
+                                    <small class="form-text text-muted">Retensi akan terisi otomatis sesuai klasifikasi yang dipilih</small>
                                 </div>
 
                                 <!-- Prihal -->
@@ -187,7 +194,7 @@ $(document).ready(function() {
         if (file) {
             const size = (file.size / (1024 * 1024)).toFixed(2);
             $('#file_info').text('File: ' + file.name + ' (' + size + ' MB)');
-            
+
             if (size > 5) {
                 $('#file_info').addClass('text-danger').removeClass('text-muted');
                 alert('Ukuran file melebihi 5 MB!');

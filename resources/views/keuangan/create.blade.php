@@ -63,10 +63,17 @@
                                 <div class="form-group">
                                     <label for="kode_klasifikasi_id">Kode Klasifikasi</label>
                                     <select name="kode_klasifikasi_id" id="kode_klasifikasi_id" class="form-control" required>
+                                        <option value="">-- Pilih Kode Klasifikasi --</option>
                                         @foreach($klasifikasi as $k)
-                                            <option value="{{ $k->id }}">{{ $k->nama }}</option>
+                                            <option value="{{ $k->id }}">
+                                                {{ $k->kode }}
+                                                @if($k->urusan) - {{ Str::limit($k->urusan, 30) }} @endif
+                                                @if($k->sub_urusan) - {{ Str::limit($k->sub_urusan, 40) }} @endif
+                                                ({{ $k->retensi }} th)
+                                            </option>
                                         @endforeach
                                     </select>
+                                    <small class="form-text text-muted">Retensi akan terisi otomatis sesuai klasifikasi yang dipilih</small>
                                 </div>
                                 <!-- Prihal -->
                                 <div class="form-group">
