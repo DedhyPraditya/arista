@@ -94,16 +94,14 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="retensi">Retensi</label>
-                            <input type="number" name="retensi" id="retensi" class="form-control" value="{{ old('retensi', $kelembagaan->retensi) }}" required>
+                            <label for="retensi_display">Retensi</label>
+                            <input type="text" id="retensi_display" class="form-control" value="{{ old('retensi', $kelembagaan->retensi) }} th" readonly>
+                            <input type="hidden" name="retensi" id="retensi" value="{{ old('retensi', $kelembagaan->retensi) }}">
                         </div>
 
                         <div class="form-group">
-                            <label for="keterangan">Keterangan</label>
-                            <select name="keterangan" id="keterangan" class="form-control" required>
-                                <option value="Aktif" {{ $kelembagaan->keterangan == 'Aktif' ? 'selected' : '' }}>Aktif</option>
-                                <option value="Inaktif" {{ $kelembagaan->keterangan == 'Inaktif' ? 'selected' : '' }}>Inaktif</option>
-                            </select>
+                            <label for="keterangan">Keterangan (Opsional)</label>
+                            <textarea name="keterangan" id="keterangan" class="form-control" rows="2" placeholder="Catatan tambahan">{{ old('keterangan', $kelembagaan->keterangan) }}</textarea>
                         </div>
 
                         <div class="form-group">
@@ -145,4 +143,40 @@
         </div>
     </div>
 </div>
+
+@push('scripts')
+<script>
+$(document).ready(function() {
+    $('#kode_klasifikasi_id').change(function() {
+        const klasifikasiId = $(this).val();
+        if (klasifikasiId) {
+            $.ajax({
+                url: '/api/klasifikasi/' + klasifikasiId,
+                method: 'GET',
+                success: function(data) {
+                    if (data && data.retensi !== undefined) {
+                        $('#retensi_display').val(data.retensi + ' th');
+                        $('#retensi').val(data.retensi);
+                    }
+                }
+            });
+        }
+    });
+
+    $('#file_path').change(function() {
+        const file = this.files[0];
+        if (file) {
+            const size = (file.size / (1024 * 1024)).toFixed(2);
+            $('#file_info').text('File: ' + file.name + ' (' + size + ' MB)');
+            if (size > 5) {
+                $('#file_info').addClass('text-danger').removeClass('text-muted');
+                alert('Ukuran file melebihi 5 MB!');
+            } else {
+                $('#file_info').removeClass('text-danger').addClass('text-muted');
+            }
+        }
+    });
+});
+</script>
+@endpush
 @endsection

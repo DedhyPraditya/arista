@@ -110,17 +110,16 @@
                                         <td>
                                             @if($hkt->retensi)
                                                 {{ $hkt->tahun_surat }} - {{ $hkt->tahun_surat + $hkt->retensi }}
+                                                <small class="text-muted">({{ $hkt->retensi }} th)</small>
                                             @else
                                                 -
                                             @endif
                                         </td>
                                         <td class="text-center">
-                                            @if ($hkt->keterangan === 'Aktif')
-                                                <span class="badge badge-success">{{ $hkt->keterangan }}</span>
-                                            @elseif ($hkt->keterangan === 'Inaktif')
-                                                <span class="badge badge-warning">{{ $hkt->keterangan }}</span>
+                                            @if ($hkt->status_aktif === 'Aktif')
+                                                <span class="badge badge-success">Aktif</span>
                                             @else
-                                                <span class="badge badge-secondary">-</span>
+                                                <span class="badge badge-warning">Inaktif</span>
                                             @endif
                                         </td>
                                         <td>{{ $hkt->nasibAkhir->nasib_akhir ?? '-' }}</td>

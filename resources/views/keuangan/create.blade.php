@@ -106,20 +106,17 @@
                                     </select>
                                 </div>
 
-                                <!-- Retensi -->
+                                <!-- Retensi (Display Only) -->
                                 <div class="form-group">
-                                    <label for="retensi">Retensi</label>
-                                    <input type="text" name="retensi" id="retensi" class="form-control" required>
+                                    <label for="retensi_display">Retensi</label>
+                                    <input type="text" id="retensi_display" class="form-control" readonly placeholder="Otomatis terisi dari klasifikasi">
+                                    <input type="hidden" name="retensi" id="retensi">
                                 </div>
 
-                                <!-- Keterangan -->
+                                <!-- Keterangan (Optional Notes) -->
                                 <div class="form-group">
-                                    <label for="keterangan">Keterangan</label>
-                                    <select name="keterangan" id="keterangan" class="form-control">
-                                        <option value="" disabled selected>Pilih Keterangan</option>
-                                        <option value="Aktif">Aktif</option>
-                                        <option value="Inaktif">Inaktif</option>
-                                    </select>
+                                    <label for="keterangan">Keterangan (Opsional)</label>
+                                    <textarea name="keterangan" id="keterangan" class="form-control" rows="2" placeholder="Catatan tambahan jika diperlukan"></textarea>
                                 </div>
 
                                 <!-- Nasib Akhir -->
@@ -148,6 +145,7 @@
                                 <div class="form-group">
                                     <label for="file_path">Upload File (Max. 5 Mbps)</label>
                                     <input type="file" name="file_path" id="file_path" class="form-control" required>
+                                    <small id="file_info" class="form-text text-muted"></small>
                                 </div>
                             </div>
                         </div>
@@ -161,4 +159,47 @@
         </div>
     </div>
 </div>
+
+@push('scripts')
+<script>
+$(document).ready(function() {
+    $('#kode_klasifikasi_id').change(function() {
+        const klasifikasiId = $(this).val();
+        if (klasifikasiId) {
+            $.ajax({
+                url: '/api/klasifikasi/' + klasifikasiId,
+                method: 'GET',
+                success: function(data) {
+                    if (data && data.retensi !== undefined) {
+                        $('#retensi_display').val(data.retensi + ' th');
+                        $('#retensi').val(data.retensi);
+                    }
+                },
+                error: function() {
+                    $('#retensi_display').val('');
+                    $('#retensi').val('');
+                }
+            });
+        } else {
+            $('#retensi_display').val('');
+            $('#retensi').val('');
+        }
+    });
+
+    $('#file_path').change(function() {
+        const file = this.files[0];
+        if (file) {
+            const size = (file.size / (1024 * 1024)).toFixed(2);
+            $('#file_info').text('File: ' + file.name + ' (' + size + ' MB)');
+            if (size > 5) {
+                $('#file_info').addClass('text-danger').removeClass('text-muted');
+                alert('Ukuran file melebihi 5 MB!');
+            } else {
+                $('#file_info').removeClass('text-danger').addClass('text-muted');
+            }
+        }
+    });
+});
+</script>
+@endpush
 @endsection

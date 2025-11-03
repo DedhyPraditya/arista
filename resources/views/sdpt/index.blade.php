@@ -111,12 +111,10 @@
                                             @endif
                                         </td>
                                         <td class="text-center">
-                                            @if ($data->keterangan === 'Aktif')
-                                                <span class="badge badge-success">{{ $data->keterangan }}</span>
-                                            @elseif ($data->keterangan === 'Inaktif')
-                                                <span class="badge badge-warning">{{ $data->keterangan }}</span>
+                                            @if ($data->status_aktif === 'Aktif')
+                                                <span class="badge badge-success">{{ $data->status_aktif }}</span>
                                             @else
-                                                <span class="badge badge-secondary">-</span>
+                                                <span class="badge badge-warning">{{ $data->status_aktif }}</span>
                                             @endif
                                         </td>
                                         <td>{{ $data->nasibAkhir->nasib_akhir ?? '-' }}</td>
