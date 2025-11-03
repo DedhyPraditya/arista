@@ -59,21 +59,21 @@
                                     </select>
                                 </div>
 
-                                <!-- Kode Klasifikasi -->
+                                <!-- Klasifikasi Arsip (Hierarki) -->
                                 <div class="form-group">
-                                    <label for="kode_klasifikasi_id">Kode Klasifikasi</label>
+                                    <label for="kode_klasifikasi_id">Klasifikasi Arsip (Hierarki)</label>
+                                    @php($groupedKlasifikasi = $klasifikasi->groupBy(fn($item) => $item->urusan ?: 'Tanpa Urusan'))
                                     <select name="kode_klasifikasi_id" id="kode_klasifikasi_id" class="form-control" required>
-                                        <option value="">-- Pilih Kode Klasifikasi --</option>
-                                        @foreach($klasifikasi as $k)
-                                            <option value="{{ $k->id }}">
-                                                {{ $k->kode }}
-                                                @if($k->urusan) - {{ Str::limit($k->urusan, 30) }} @endif
-                                                @if($k->sub_urusan) - {{ Str::limit($k->sub_urusan, 40) }} @endif
-                                                ({{ $k->retensi }} th)
-                                            </option>
+                                        <option value="">-- Pilih Klasifikasi --</option>
+                                        @foreach($groupedKlasifikasi as $urusan => $items)
+                                            <optgroup label="{{ $urusan }}">
+                                                @foreach($items as $item)
+                                                    <option value="{{ $item->id }}">{{ $item->kode }} - {{ Str::limit($item->sub_urusan ?: $item->nama ?: 'Tidak ada deskripsi', 70) }}</option>
+                                                @endforeach
+                                            </optgroup>
                                         @endforeach
                                     </select>
-                                    <small class="form-text text-muted">Retensi akan terisi otomatis sesuai klasifikasi yang dipilih</small>
+                                    <small class="form-text text-muted">Retensi dihitung otomatis di backend.</small>
                                 </div>
 
                                 <!-- Prihal -->
@@ -113,12 +113,7 @@
                                     </select>
                                 </div>
 
-                                <!-- Retensi (Display Only) -->
-                                <div class="form-group">
-                                    <label for="retensi_display">Retensi</label>
-                                    <input type="text" id="retensi_display" class="form-control" readonly placeholder="Otomatis terisi dari klasifikasi">
-                                    <input type="hidden" name="retensi" id="retensi">
-                                </div>
+                                <!-- Retensi dihilangkan dari form create (dihitung otomatis) -->
 
                                 <!-- Keterangan (Optional Notes) -->
                                 <div class="form-group">
@@ -171,29 +166,6 @@
 @push('scripts')
 <script>
 $(document).ready(function() {
-    $('#kode_klasifikasi_id').change(function() {
-        const klasifikasiId = $(this).val();
-        if (klasifikasiId) {
-            $.ajax({
-                url: '/api/klasifikasi/' + klasifikasiId,
-                method: 'GET',
-                success: function(data) {
-                    if (data && data.retensi !== undefined) {
-                        $('#retensi_display').val(data.retensi + ' th');
-                        $('#retensi').val(data.retensi);
-                    }
-                },
-                error: function() {
-                    $('#retensi_display').val('');
-                    $('#retensi').val('');
-                }
-            });
-        } else {
-            $('#retensi_display').val('');
-            $('#retensi').val('');
-        }
-    });
-
     $('#file_path').change(function() {
         const file = this.files[0];
         if (file) {

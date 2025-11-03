@@ -55,21 +55,23 @@
                                     </select>
                                 </div>
 
-                                <!-- Kode Klasifikasi -->
+                                <!-- Kode Klasifikasi (Hierarki) -->
                                 <div class="form-group">
-                                    <label for="kode_klasifikasi_id">Kode Klasifikasi</label>
+                                    <label for="kode_klasifikasi_id">Klasifikasi Arsip (Hierarki)</label>
+                                    @php($groupedKlasifikasi = $klasifikasi->groupBy(fn($item) => $item->urusan ?: 'Tanpa Urusan'))
                                     <select name="kode_klasifikasi_id" id="kode_klasifikasi_id" class="form-control" required>
-                                        <option value="">-- Pilih Kode Klasifikasi --</option>
-                                        @foreach($klasifikasi as $k)
-                                            <option value="{{ $k->id }}">
-                                                {{ $k->kode }}
-                                                @if($k->urusan) - {{ Str::limit($k->urusan, 30) }} @endif
-                                                @if($k->sub_urusan) - {{ Str::limit($k->sub_urusan, 40) }} @endif
-                                                ({{ $k->retensi }} th)
-                                            </option>
+                                        <option value="">-- Pilih Klasifikasi --</option>
+                                        @foreach($groupedKlasifikasi as $urusan => $items)
+                                            <optgroup label="{{ $urusan }}">
+                                                @foreach($items as $item)
+                                                    <option value="{{ $item->id }}">
+                                                        {{ $item->kode }} - {{ Str::limit($item->sub_urusan ?: $item->nama ?: 'Tidak ada deskripsi', 70) }}
+                                                    </option>
+                                                @endforeach
+                                            </optgroup>
                                         @endforeach
                                     </select>
-                                    <small class="form-text text-muted">Retensi akan terisi otomatis sesuai klasifikasi yang dipilih</small>
+                                    <small class="form-text text-muted">Ditampilkan per urusan. Retensi dihitung otomatis di backend.</small>
                                 </div>
 
                                 <!-- Prihal -->
@@ -107,13 +109,7 @@
                                     </select>
                                 </div>
 
-                                <!-- Retensi (otomatis dari klasifikasi) -->
-                                <div class="form-group">
-                                    <label for="retensi_display">Retensi (Tahun)</label>
-                                    <input type="text" id="retensi_display" class="form-control" readonly placeholder="Otomatis diisi dari Klasifikasi">
-                                    <input type="hidden" name="retensi" id="retensi" value="">
-                                    <small class="form-text text-muted">Retensi akan diisi otomatis berdasarkan Klasifikasi yang dipilih.</small>
-                                </div>
+                                <!-- Retensi dihilangkan dari form create (dihitung otomatis) -->
 
                                 <!-- Keterangan / Catatan -->
                                 <div class="form-group">
@@ -167,30 +163,9 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Data klasifikasi untuk auto-fill retensi
-    const klasifikasiData = {!! json_encode($klasifikasi->map(fn($k) => ['id' => $k->id, 'retensi' => $k->retensi])) !!};
-
-    const klasifikasiSelect = document.getElementById('kode_klasifikasi_id');
-    const retensiInput = document.getElementById('retensi');
-    const retensiDisplay = document.getElementById('retensi_display');
-
-    // Auto-fill retensi saat klasifikasi dipilih
-    klasifikasiSelect?.addEventListener('change', function() {
-        const selectedId = parseInt(this.value);
-        const selected = klasifikasiData.find(k => k.id === selectedId);
-        if (selected) {
-            retensiInput.value = selected.retensi; // hidden field (angka saja)
-            retensiDisplay.value = selected.retensi + ' tahun'; // display field
-        } else {
-            retensiInput.value = '';
-            retensiDisplay.value = '';
-        }
-    });
-
-    // Preview file name saat dipilih
+    // Preview file name saat dipilih (retensi di-backend)
     const fileInput = document.getElementById('file_path');
     const fileInfo = document.getElementById('file_info');
-
     fileInput?.addEventListener('change', function() {
         if (this.files && this.files[0]) {
             const file = this.files[0];
