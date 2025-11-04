@@ -71,9 +71,7 @@
                                             </optgroup>
                                         @endforeach
                                     </select>
-                                                                        </select>
                                     <small class="form-text text-muted">Ditampilkan per urusan. Retensi dihitung otomatis.</small>
-                                </div>
                                 </div>
 
                                 <!-- Prihal -->
