@@ -67,7 +67,7 @@
                                             </optgroup>
                                         @endforeach
                                     </select>
-                                    <small class="form-text text-muted">Retensi dihitung otomatis di backend.</small>
+                                    <small class="form-text text-muted">Retensi dihitung otomatis.</small>
                                 </div>
 
                                 <!-- Prihal -->

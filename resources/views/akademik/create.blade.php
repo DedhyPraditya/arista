@@ -57,7 +57,7 @@
 
                                 <!-- Kode Klasifikasi (Hierarki) -->
                                 <div class="form-group">
-                                    <label for="kode_klasifikasi_id">Klasifikasi Arsip (Hierarki)</label>
+                                    <label for="kode_klasifikasi_id">Klasifikasi Arsip</label>
                                     @php($groupedKlasifikasi = $klasifikasi->groupBy(fn($item) => $item->urusan ?: 'Tanpa Urusan'))
                                     <select name="kode_klasifikasi_id" id="kode_klasifikasi_id" class="form-control" required>
                                         <option value="">-- Pilih Klasifikasi --</option>
@@ -71,7 +71,9 @@
                                             </optgroup>
                                         @endforeach
                                     </select>
-                                    <small class="form-text text-muted">Ditampilkan per urusan. Retensi dihitung otomatis di backend.</small>
+                                                                        </select>
+                                    <small class="form-text text-muted">Ditampilkan per urusan. Retensi dihitung otomatis.</small>
+                                </div>
                                 </div>
 
                                 <!-- Prihal -->
