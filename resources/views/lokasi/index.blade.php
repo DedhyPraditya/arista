@@ -51,10 +51,10 @@
                                 <td>{{ $item->folder }}</td>
                                 <td class="text-center">
                                     <button class="btn btn-warning btn-sm" data-toggle="modal" data-target="#editModal{{ $item->id }}" title="Edit"><i class="fas fa-edit"></i></button>
-                                    <form action="{{ route('lokasi.destroy', $item->id) }}" method="POST" style="display:inline;">
+                                    <form id="delete-form-{{ $item->id }}" action="{{ route('lokasi.destroy', $item->id) }}" method="POST" style="display:inline;">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Yakin ingin menghapus data ini?')" title="Hapus"><i class="fas fa-trash"></i></button>
+                                        <button type="button" class="btn btn-danger btn-sm" onclick="confirmDelete({{ $item->id }})" title="Hapus"><i class="fas fa-trash"></i></button>
                                     </form>
                                 </td>
                             </tr>

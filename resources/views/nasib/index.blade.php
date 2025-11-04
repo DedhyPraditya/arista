@@ -52,10 +52,10 @@
                                 </button>
 
                                 <!-- Delete Button -->
-                                <form action="{{ route('nasib.destroy', $nasib->id) }}" method="POST" style="display:inline;">
+                                <form id="delete-form-{{ $nasib->id }}" action="{{ route('nasib.destroy', $nasib->id) }}" method="POST" style="display:inline;">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Yakin ingin menghapus?')" title="Hapus">
+                                    <button type="button" class="btn btn-danger btn-sm" onclick="confirmDelete({{ $nasib->id }})" title="Hapus">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </form>
@@ -154,10 +154,11 @@
             showCancelButton: true,
             confirmButtonColor: '#3085d6',
             cancelButtonColor: '#d33',
-            confirmButtonText: 'Ya, hapus!'
+            confirmButtonText: 'Ya, hapus!',
+            cancelButtonText: 'Batal'
         }).then((result) => {
             if (result.isConfirmed) {
-                document.getElementById(`delete-form-${id}`).submit();
+                document.getElementById('delete-form-' + id).submit();
             }
         });
     }

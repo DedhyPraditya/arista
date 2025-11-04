@@ -47,14 +47,14 @@
                                     <th class="text-center">
                                         <button class="btn btn-warning btn-sm" data-toggle="modal" data-target="#editModal{{ $item->id }}" title="Edit"><i class="fas fa-edit"></i></button>
 
-                                        <form action="{{ route('pencipta_arsip.destroy', $item->id) }}" method="POST" style="display: inline-block;">
+                                        <form id="delete-form-{{ $item->id }}" action="{{ route('pencipta_arsip.destroy', $item->id) }}" method="POST" style="display: inline-block;">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Yakin ingin menghapus data ini?')" title="Hapus">
+                                            <button type="button" class="btn btn-sm btn-danger" onclick="confirmDelete({{ $item->id }})" title="Hapus">
                                                 <i class="fas fa-trash"></i>
                                             </button>
                                         </form>
-                                    </td>
+                                    </th>
                                 </tr>
                             @empty
                                 <tr>

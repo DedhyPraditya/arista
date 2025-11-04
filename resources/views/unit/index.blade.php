@@ -42,10 +42,10 @@
                                 <td>{{ $unit->unit_pengelola }}</td>
                                 <td class="text-center">
                                     <button class="btn btn-warning btn-sm" data-toggle="modal" data-target="#editModal{{ $unit->id }}" title="Edit"><i class="fas fa-edit"></i></button>
-                                    <form action="{{ route('unit.destroy', $unit->id) }}" method="POST" style="display:inline;" title="Hapus">
+                                    <form id="delete-form-{{ $unit->id }}" action="{{ route('unit.destroy', $unit->id) }}" method="POST" style="display:inline;" title="Hapus">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Yakin ingin menghapus data ini?')"><i class="fas fa-trash"></i></button>
+                                        <button type="button" class="btn btn-danger btn-sm" onclick="confirmDelete({{ $unit->id }})"><i class="fas fa-trash"></i></button>
                                     </form>
                                 </td>
                             </tr>
