@@ -50,7 +50,13 @@
                                     @endif
                                 </td>
                                 <td>{{ $item->nama }}</td>
-                                <td class="text-center"><span class="badge badge-secondary">{{ $item->retensi }} th</span></td>
+                                <td class="text-center">
+                                    @if($item->retensi !== null)
+                                        <span class="badge badge-secondary">{{ $item->retensi }} th</span>
+                                    @else
+                                        <span class="text-muted">-</span>
+                                    @endif
+                                </td>
                                 <td class="text-center">
                                     <!-- Edit Button to Trigger Edit Modal -->
                                     <button class="btn btn-sm btn-warning" data-toggle="modal" data-target="#editModal{{ $item->id }}">
@@ -167,40 +173,23 @@
                         </label>
                         <input type="text" class="form-control" id="urusan" name="urusan" value="{{ old('urusan', $item->urusan) }}">
                         <small class="form-text text-muted">Kategori utama dari klasifikasi (A, B, C, dst)</small>
-                    <script>
-                        // Live hint parent & level
-                        document.addEventListener('DOMContentLoaded', () => {
-                            const kodeInput = document.getElementById('kode');
-                            const hint = document.getElementById('hierarchyHint');
-                            if (kodeInput && hint) {
-                                const updateHint = () => {
-                                    const raw = kodeInput.value.trim();
-                                    if (!raw) { hint.textContent = ''; return; }
-                                    const segments = raw.split('.');
-                                    const level = segments.length - 1;
-                                    const parent = segments.length > 1 ? segments.slice(0, -1).join('.') : '(root)';
-                                    hint.innerHTML = `<span class="badge badge-info">Level ${level}</span> Parent: <strong>${parent}</strong>`;
-                                };
-                                kodeInput.addEventListener('input', updateHint);
-                                updateHint();
-                            }
-                        });
-                        function confirmDelete(id) {
-                            Swal.fire({
-                                title: 'Apakah Anda yakin?',
-                                text: "Data ini akan dihapus secara permanen!",
-                                icon: 'warning',
-                                showCancelButton: true,
-                                confirmButtonColor: '#3085d6',
-                                cancelButtonColor: '#d33',
-                                confirmButtonText: 'Ya, hapus!'
-                            }).then((result) => {
-                                if (result.isConfirmed) {
-                                    document.getElementById('delete-form-' + id).submit();
-                                }
-                            });
-                        }
-                    </script>
+                    </div>
+                    <div class="form-group">
+                        <label for="sub_urusan">
+                            <span class="badge badge-info badge-pill">Sub-urusan</span> Sub Urusan / Detail
+                        </label>
+                        <textarea class="form-control" id="sub_urusan" name="sub_urusan" rows="2">{{ old('sub_urusan', $item->sub_urusan) }}</textarea>
+                        <small class="form-text text-muted">Detail atau penjabaran dari urusan utama (1, 2, 3, dst atau a, b, c, dst)</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="nama">Nama/Judul</label>
+                        <input type="text" class="form-control" id="nama" name="nama" value="{{ old('nama', $item->nama) }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="retensi">Retensi (Tahun) <span class="badge badge-secondary">Optional</span></label>
+                        <input type="number" class="form-control" id="retensi" name="retensi" value="{{ old('retensi', $item->retensi) }}" placeholder="Isi hanya untuk leaf">
+                        <small class="form-text text-muted">Biarkan kosong jika menjadi kategori induk.</small>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fas fa-close"></i> Tutup</button>
@@ -211,7 +200,26 @@
     </div>
 </div>
 @endforeach
+
 <script>
+    // Live hint parent & level untuk modal create
+    document.addEventListener('DOMContentLoaded', () => {
+        const kodeInput = document.getElementById('kode');
+        const hint = document.getElementById('hierarchyHint');
+        if (kodeInput && hint) {
+            const updateHint = () => {
+                const raw = kodeInput.value.trim();
+                if (!raw) { hint.textContent = ''; return; }
+                const segments = raw.split('.');
+                const level = segments.length - 1;
+                const parent = segments.length > 1 ? segments.slice(0, -1).join('.') : '(root)';
+                hint.innerHTML = `<span class="badge badge-info">Level ${level}</span> Parent: <strong>${parent}</strong>`;
+            };
+            kodeInput.addEventListener('input', updateHint);
+            updateHint();
+        }
+    });
+
     function confirmDelete(id) {
         Swal.fire({
             title: 'Apakah Anda yakin?',
@@ -223,7 +231,7 @@
             confirmButtonText: 'Ya, hapus!'
         }).then((result) => {
             if (result.isConfirmed) {
-                document.getElementById(`delete-form-${id}`).submit();
+                document.getElementById('delete-form-' + id).submit();
             }
         });
     }
