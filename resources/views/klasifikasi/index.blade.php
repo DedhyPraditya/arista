@@ -11,6 +11,15 @@
         </button>
     </div>
 
+    <!-- Search Form -->
+    <form method="GET" action="{{ route('klasifikasi.index') }}" class="mb-3">
+        <div class="input-group">
+            <input type="text" name="search" class="form-control" placeholder="Cari kode atau nama klasifikasi..." value="{{ request('search') }}">
+            <div class="input-group-append">
+                <button class="btn btn-outline-primary" type="submit">Cari</button>
+            </div>
+        </div>
+    </form>
     <!-- Data Table -->
     <div class="card shadow mb-4">
         <div class="card-header py-3">

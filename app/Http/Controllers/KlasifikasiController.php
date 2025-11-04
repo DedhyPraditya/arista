@@ -11,7 +11,15 @@ class KlasifikasiController extends Controller
 {
     public function index()
     {
-        $klasifikasi = Klasifikasi::orderBy('kode', 'asc')->paginate(10);
+        $query = Klasifikasi::query();
+        if (request()->has('search') && request('search')) {
+            $search = request('search');
+            $query->where(function($q) use ($search) {
+                $q->where('kode', 'like', "%$search%")
+                  ->orWhere('nama', 'like', "%$search%");
+            });
+        }
+        $klasifikasi = $query->orderBy('kode', 'asc')->paginate(10);
         return view('klasifikasi.index', compact('klasifikasi'));
     }
 
