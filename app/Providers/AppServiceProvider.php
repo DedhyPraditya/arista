@@ -22,5 +22,8 @@ class AppServiceProvider extends ServiceProvider
     {
         // Gunakan Bootstrap 4 untuk pagination
         Paginator::useBootstrapFour();
+
+        // Register Klasifikasi Observer untuk auto-update is_leaf
+        \App\Models\Klasifikasi::observe(\App\Observers\KlasifikasiObserver::class);
     }
 }
