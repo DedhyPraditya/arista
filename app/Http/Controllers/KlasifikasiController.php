@@ -23,21 +23,35 @@ class KlasifikasiController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
-            'kode' => 'required|unique:klasifikasi|max:20',
+        $validated = $request->validate([
+            'kode' => 'required|unique:klasifikasi|max:50',
             'urusan' => 'nullable|string|max:255',
             'sub_urusan' => 'nullable|string',
             'nama' => 'required|max:255',
-            'retensi' => 'required|integer|min:0',
+            'retensi' => 'nullable|integer|min:0', // sekarang optional untuk parent
         ], [
             'kode.required' => 'Kode klasifikasi wajib diisi.',
             'kode.unique' => 'Kode klasifikasi sudah digunakan.',
             'nama.required' => 'Nama/judul wajib diisi.',
-            'retensi.required' => 'Retensi wajib diisi.',
             'retensi.integer' => 'Retensi harus berupa angka.',
         ]);
 
-        Klasifikasi::create($request->all());
+        // Derive hierarchy attributes from kode
+        $segments = explode('.', $validated['kode']);
+        $parentKode = count($segments) > 1 ? implode('.', array_slice($segments, 0, -1)) : null;
+        $level = count($segments) - 1; // root = 0
+        $isLeaf = true; // diasumsikan leaf saat dibuat; akan berubah jika nanti ditambah anak
+
+        // Normalisasi retensi: parent boleh null
+        if (!array_key_exists('retensi', $validated) || $validated['retensi'] === '' ) {
+            $validated['retensi'] = null;
+        }
+
+        $validated['parent_kode'] = $parentKode;
+        $validated['level'] = $level;
+        $validated['is_leaf'] = $isLeaf;
+
+        Klasifikasi::create($validated);
 
         Alert::success('Berhasil', 'Data klasifikasi berhasil disimpan.');
         return redirect()->route('klasifikasi.index');
@@ -51,16 +65,34 @@ class KlasifikasiController extends Controller
 
     public function update(Request $request, $id)
     {
-        $request->validate([
-            'kode' => 'required|max:20',
+        $klasifikasi = Klasifikasi::findOrFail($id);
+
+        $validated = $request->validate([
+            'kode' => 'required|max:50',
             'urusan' => 'nullable|string|max:255',
             'sub_urusan' => 'nullable|string',
             'nama' => 'required|max:255',
-            'retensi' => 'required|integer|min:0',
+            'retensi' => 'nullable|integer|min:0',
+        ], [
+            'kode.required' => 'Kode klasifikasi wajib diisi.',
+            'nama.required' => 'Nama/judul wajib diisi.',
+            'retensi.integer' => 'Retensi harus berupa angka.',
         ]);
 
-        $klasifikasi = Klasifikasi::findOrFail($id);
-        $klasifikasi->update($request->all());
+        // Recalculate hierarchy (if kode berubah)
+        $segments = explode('.', $validated['kode']);
+        $parentKode = count($segments) > 1 ? implode('.', array_slice($segments, 0, -1)) : null;
+        $level = count($segments) - 1;
+
+        if (!array_key_exists('retensi', $validated) || $validated['retensi'] === '') {
+            $validated['retensi'] = null; // parent atau tidak diisi
+        }
+
+        $validated['parent_kode'] = $parentKode;
+        $validated['level'] = $level;
+        // is_leaf tidak otomatis diubah di sini; perubahan struktur anak akan ditangani via backfill command
+
+        $klasifikasi->update($validated);
 
         Alert::success('Berhasil', 'Data klasifikasi berhasil diupdate.');
         return redirect()->route('klasifikasi.index');

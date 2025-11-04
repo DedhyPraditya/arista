@@ -26,7 +26,8 @@ class FileController extends Controller
             ->with(['unitPengelola', 'klasifikasi'])
             ->get()
             ->map(function ($item) {
-                $size = \Storage::disk('public')->exists($item->file_path) ? \Storage::disk('public')->size($item->file_path) : 0;
+                // Safe size check untuk file arsip terkait
+                $size = Storage::disk('public')->exists($item->file_path) ? Storage::disk('public')->size($item->file_path) : 0;
                 $formattedSize = $this->formatSize($size);
                 return (object) [
                     'id' => 'hkt_' . $item->id,
@@ -52,7 +53,7 @@ class FileController extends Controller
             ->with(['unitPengelola', 'klasifikasi'])
             ->get()
             ->map(function ($item) {
-                $size = \Storage::disk('public')->exists($item->file_path) ? \Storage::disk('public')->size($item->file_path) : 0;
+                $size = Storage::disk('public')->exists($item->file_path) ? Storage::disk('public')->size($item->file_path) : 0;
                 $formattedSize = $this->formatSize($size);
                 return (object) [
                     'id' => 'keuangan_' . $item->id,
@@ -77,7 +78,7 @@ class FileController extends Controller
             ->with(['unitPengelola', 'klasifikasi'])
             ->get()
             ->map(function ($item) {
-                $size = \Storage::disk('public')->exists($item->file_path) ? \Storage::disk('public')->size($item->file_path) : 0;
+                $size = Storage::disk('public')->exists($item->file_path) ? Storage::disk('public')->size($item->file_path) : 0;
                 $formattedSize = $this->formatSize($size);
                 return (object) [
                     'id' => 'kelembagaan_' . $item->id,
@@ -102,7 +103,7 @@ class FileController extends Controller
             ->with(['unitPengelola', 'klasifikasi'])
             ->get()
             ->map(function ($item) {
-                $size = \Storage::disk('public')->exists($item->file_path) ? \Storage::disk('public')->size($item->file_path) : 0;
+                $size = Storage::disk('public')->exists($item->file_path) ? Storage::disk('public')->size($item->file_path) : 0;
                 $formattedSize = $this->formatSize($size);
                 return (object) [
                     'id' => 'kemahasiswaan_' . $item->id,
@@ -127,7 +128,7 @@ class FileController extends Controller
             ->with(['unitPengelola', 'klasifikasi'])
             ->get()
             ->map(function ($item) {
-                $size = \Storage::disk('public')->exists($item->file_path) ? \Storage::disk('public')->size($item->file_path) : 0;
+                $size = Storage::disk('public')->exists($item->file_path) ? Storage::disk('public')->size($item->file_path) : 0;
                 $formattedSize = $this->formatSize($size);
                 return (object) [
                     'id' => 'akademik_' . $item->id,
@@ -152,7 +153,7 @@ class FileController extends Controller
             ->with(['unitPengelola', 'klasifikasi'])
             ->get()
             ->map(function ($item) {
-                $size = \Storage::disk('public')->exists($item->file_path) ? \Storage::disk('public')->size($item->file_path) : 0;
+                $size = Storage::disk('public')->exists($item->file_path) ? Storage::disk('public')->size($item->file_path) : 0;
                 $formattedSize = $this->formatSize($size);
                 return (object) [
                     'id' => 'sdpt_' . $item->id,
@@ -241,7 +242,9 @@ class FileController extends Controller
                 'file_path' => $filePath,
                 'file_size' => $uploadedFile->getSize(),
                 'mime_type' => $uploadedFile->getMimeType(),
-                'uploaded_by' => auth()->id(),
+                // Gunakan optional chaining untuk menghindari null method call jika belum login
+                // Ambil id user jika auth tersedia, null jika tidak
+                'uploaded_by' => \Illuminate\Support\Facades\Auth::check() ? \Illuminate\Support\Facades\Auth::id() : null,
                 'description' => $validated['description'] ?? null,
                 'is_public' => $validated['is_public'] ?? false,
             ]);
@@ -307,7 +310,9 @@ class FileController extends Controller
                 return redirect()->back();
             }
 
-            return Storage::disk('public')->download($file->file_path, $file->original_name);
+            // Fallback manual jika metode download tidak dikenali oleh analyzer
+            $absolutePath = Storage::disk('public')->path($file->file_path);
+            return response()->download($absolutePath, $file->original_name);
 
         } catch (\Exception $e) {
             Log::error('File download error: ' . $e->getMessage());

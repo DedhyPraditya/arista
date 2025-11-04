@@ -15,6 +15,7 @@ class Kernel extends ConsoleKernel
     protected $commands = [
         \App\Console\Commands\BackfillFileMetadata::class,
         \App\Console\Commands\BackfillKlasifikasiHierarchy::class,
+        \App\Console\Commands\ShowKlasifikasiTree::class,
     ];
 
     /**
