@@ -46,14 +46,16 @@ class KemahasiswaanController extends Controller
     {
         Log::info('Fetching dropdown data for create form');
         $unitPengelola = UnitPengelola::all();
-        $klasifikasi = Klasifikasi::all();
+        $klasifikasiTree = Klasifikasi::where(function($q){
+            $q->whereNull('parent_kode')->orWhere('parent_kode','');
+        })->with('children.children')->orderBy('kode')->get();
         $tingkatPerkembangan = TingkatPerkembangan::all();
         $lokasiArsip = LokasiArsip::all();
         $nasibAkhir = NasibAkhir::all();
 
-        Log::info('Fetched data for dropdowns: unitPengelola, klasifikasi, tingkatPerkembangan, lokasiArsip, nasibAkhir');
+        Log::info('Fetched hierarchical klasifikasi tree for create form');
 
-        return view('kemahasiswaan.create', compact('unitPengelola', 'klasifikasi', 'tingkatPerkembangan', 'lokasiArsip', 'nasibAkhir'));
+        return view('kemahasiswaan.create', compact('unitPengelola', 'klasifikasiTree', 'tingkatPerkembangan', 'lokasiArsip', 'nasibAkhir'));
     }
 
     public function store(Request $request)
@@ -69,9 +71,12 @@ class KemahasiswaanController extends Controller
 
             $validated = $request->validate($rules, $this->getValidationMessages(), $this->getAttributeNames());
 
-            // Auto-fill retensi dari klasifikasi
+            // Validasi leaf & ambil retensi
             $klasifikasi = Klasifikasi::find($validated['kode_klasifikasi_id']);
             if ($klasifikasi) {
+                if (!$klasifikasi->isLeaf()) {
+                    return back()->withErrors(['kode_klasifikasi_id' => 'Harus memilih klasifikasi tingkat akhir (leaf).'])->withInput();
+                }
                 $validated['retensi'] = $klasifikasi->retensi;
             }
             if (empty($validated['tahun_surat']) && !empty($validated['tanggal_surat'])) {
@@ -104,14 +109,16 @@ class KemahasiswaanController extends Controller
     {
         Log::info('Fetching data for editing Kemahasiswaan with ID: ' . $kemahasiswaan->id);
         $unitPengelola = UnitPengelola::all();
-        $klasifikasi = Klasifikasi::all();
+        $klasifikasiTree = Klasifikasi::where(function ($q) {
+            $q->whereNull('parent_kode')->orWhere('parent_kode', '');
+        })->with('children.children')->orderBy('kode')->get();
         $tingkatPerkembangan = TingkatPerkembangan::all();
         $lokasiArsip = LokasiArsip::all();
         $nasibAkhir = NasibAkhir::all();
 
-        Log::info('Fetched data for edit form: unitPengelola, klasifikasi, tingkatPerkembangan, lokasiArsip, nasibAkhir');
+        Log::info('Fetched data for edit form: unitPengelola, klasifikasiTree, tingkatPerkembangan, lokasiArsip, nasibAkhir');
 
-        return view('kemahasiswaan.edit', compact('kemahasiswaan', 'unitPengelola', 'klasifikasi', 'tingkatPerkembangan', 'lokasiArsip', 'nasibAkhir'));
+        return view('kemahasiswaan.edit', compact('kemahasiswaan', 'unitPengelola', 'klasifikasiTree', 'tingkatPerkembangan', 'lokasiArsip', 'nasibAkhir'));
     }
 
     public function update(Request $request, Kemahasiswaan $kemahasiswaan)
@@ -132,6 +139,10 @@ class KemahasiswaanController extends Controller
             if (isset($validated['kode_klasifikasi_id'])) {
                 $klasifikasi = Klasifikasi::find($validated['kode_klasifikasi_id']);
                 if ($klasifikasi) {
+                    // Validasi harus leaf
+                    if (!$klasifikasi->isLeaf()) {
+                        return back()->withErrors(['kode_klasifikasi_id' => 'Harus memilih klasifikasi tingkat akhir (leaf).'])->withInput();
+                    }
                     $validated['retensi'] = $klasifikasi->retensi;
                 }
             }

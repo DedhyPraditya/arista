@@ -53,15 +53,29 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="kode_klasifikasi_id">Kode Klasifikasi</label>
+                            <label for="kode_klasifikasi_id">Klasifikasi Arsip (Hierarki)</label>
+                            @php
+                                function renderKlasifikasiOptionsEditHkt($nodes, $depth = 0, $selectedId = null) {
+                                    foreach ($nodes as $node) {
+                                        $indent = str_repeat('—', $depth);
+                                        if ($node->isLeaf()) {
+                                            $selected = ($selectedId == $node->id) ? 'selected' : '';
+                                            echo '<option value="'.$node->id.'" '.$selected.'>'.$indent.' '.$node->kode.' - '.e(Str::limit($node->nama,70)).'</option>';
+                                        } else {
+                                            echo '<optgroup label="'.$indent.' '.$node->kode.' - '.e(Str::limit($node->nama,70)).'">';
+                                            renderKlasifikasiOptionsEditHkt($node->children, $depth + 1, $selectedId);
+                                            echo '</optgroup>';
+                                        }
+                                    }
+                                }
+                            @endphp
                             <select name="kode_klasifikasi_id" id="kode_klasifikasi_id" class="form-control" required>
-                                <option value="" disabled selected>Pilih Kode Klasifikasi</option>
-                                @foreach($klasifikasi as $kode)
-                                    <option value="{{ $kode->id }}" {{ $hkt->kode_klasifikasi_id == $kode->id ? 'selected' : '' }}>
-                                        {{ $kode->nama }}
-                                    </option>
-                                @endforeach
+                                <option value="">-- Pilih Klasifikasi Leaf --</option>
+                                @isset($klasifikasiTree)
+                                    @php(renderKlasifikasiOptionsEditHkt($klasifikasiTree, 0, $hkt->kode_klasifikasi_id))
+                                @endisset
                             </select>
+                            <small class="form-text text-muted">Hanya klasifikasi tingkat akhir (leaf) dapat dipilih. Retensi dihitung otomatis.</small>
                         </div>
 
                         <div class="form-group">

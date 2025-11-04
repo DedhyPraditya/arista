@@ -46,14 +46,17 @@ class AkademikController extends Controller
     {
         Log::info('Fetching dropdown data for create form');
         $unitPengelola = UnitPengelola::all();
-        $klasifikasi = Klasifikasi::all();
+        // Ambil hanya root lalu eager load children (2 level cukup; bisa ditambah jika lebih dalam)
+        $klasifikasiTree = Klasifikasi::where(function($q){
+            $q->whereNull('parent_kode')->orWhere('parent_kode','');
+        })->with('children.children')->orderBy('kode')->get();
         $tingkatPerkembangan = TingkatPerkembangan::all();
         $lokasiArsip = LokasiArsip::all();
         $nasibAkhir = NasibAkhir::all();
 
-        Log::info('Fetched data for dropdowns: unitPengelola, klasifikasi, tingkatPerkembangan, lokasiArsip, nasibAkhir');
+        Log::info('Fetched hierarchical klasifikasi tree for create form');
 
-        return view('akademik.create', compact('unitPengelola', 'klasifikasi', 'tingkatPerkembangan', 'lokasiArsip', 'nasibAkhir'));
+        return view('akademik.create', compact('unitPengelola', 'klasifikasiTree', 'tingkatPerkembangan', 'lokasiArsip', 'nasibAkhir'));
     }
 
     public function store(Request $request)
@@ -69,10 +72,13 @@ class AkademikController extends Controller
 
                 $validated = $request->validate($rules, $this->getValidationMessages(), $this->getAttributeNames());
 
-                // Ambil retensi dari klasifikasi (snapshot)
+                // Validasi klasifikasi leaf & ambil retensi snapshot
                 $klasifikasi = Klasifikasi::find($validated['kode_klasifikasi_id']);
                 if ($klasifikasi) {
-                    $validated['retensi'] = $klasifikasi->retensi; // override agar tidak diinput manual
+                    if (!$klasifikasi->isLeaf()) {
+                        return back()->withErrors(['kode_klasifikasi_id' => 'Harus memilih klasifikasi tingkat akhir (leaf).'])->withInput();
+                    }
+                    $validated['retensi'] = $klasifikasi->retensi; // snapshot retensi
                 }
                 // Tahun surat sinkron dari tanggal_surat jika belum diberikan / ingin dipastikan konsisten
                 if (empty($validated['tahun_surat']) && !empty($validated['tanggal_surat'])) {
@@ -105,14 +111,16 @@ class AkademikController extends Controller
     {
         Log::info('Fetching data for editing Akademik with ID: ' . $akademik->id);
         $unitPengelola = UnitPengelola::all();
-        $klasifikasi = Klasifikasi::all();
+        $klasifikasiTree = Klasifikasi::where(function ($q) {
+            $q->whereNull('parent_kode')->orWhere('parent_kode', '');
+        })->with('children.children')->orderBy('kode')->get();
         $tingkatPerkembangan = TingkatPerkembangan::all();
         $lokasiArsip = LokasiArsip::all();
         $nasibAkhir = NasibAkhir::all();
 
-        Log::info('Fetched data for edit form: unitPengelola, klasifikasi, tingkatPerkembangan, lokasiArsip, nasibAkhir');
+        Log::info('Fetched data for edit form: unitPengelola, klasifikasiTree, tingkatPerkembangan, lokasiArsip, nasibAkhir');
 
-        return view('akademik.edit', compact('akademik', 'unitPengelola', 'klasifikasi', 'tingkatPerkembangan', 'lokasiArsip', 'nasibAkhir'));
+        return view('akademik.edit', compact('akademik', 'unitPengelola', 'klasifikasiTree', 'tingkatPerkembangan', 'lokasiArsip', 'nasibAkhir'));
     }
 
     public function update(Request $request, Akademik $akademik)
@@ -133,6 +141,10 @@ class AkademikController extends Controller
                 if (isset($validated['kode_klasifikasi_id'])) {
                     $klasifikasi = Klasifikasi::find($validated['kode_klasifikasi_id']);
                     if ($klasifikasi) {
+                        // Validasi harus leaf
+                        if (!$klasifikasi->isLeaf()) {
+                            return back()->withErrors(['kode_klasifikasi_id' => 'Harus memilih klasifikasi tingkat akhir (leaf).'])->withInput();
+                        }
                         $validated['retensi'] = $klasifikasi->retensi;
                     }
                 }

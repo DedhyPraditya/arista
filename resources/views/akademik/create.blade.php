@@ -55,23 +55,31 @@
                                     </select>
                                 </div>
 
-                                <!-- Kode Klasifikasi (Hierarki) -->
+                                <!-- Klasifikasi Arsip (Tree) -->
                                 <div class="form-group">
-                                    <label for="kode_klasifikasi_id">Klasifikasi Arsip</label>
-                                    @php($groupedKlasifikasi = $klasifikasi->groupBy(fn($item) => $item->urusan ?: 'Tanpa Urusan'))
+                                    <label for="kode_klasifikasi_id">Klasifikasi Arsip (Hierarki)</label>
+                                    @php
+                                        // Recursive render function
+                                        function renderKlasifikasiOptions($nodes, $depth = 0) {
+                                            foreach ($nodes as $node) {
+                                                $indent = str_repeat('—', $depth);
+                                                if ($node->isLeaf()) {
+                                                    echo '<option value="'.$node->id.'">'.$indent.' '.$node->kode.' - '.e(Str::limit($node->nama,70)).'</option>';
+                                                } else {
+                                                    echo '<optgroup label="'.$indent.' '.$node->kode.' - '.e(Str::limit($node->nama,70)).'">';
+                                                    renderKlasifikasiOptions($node->children, $depth + 1);
+                                                    echo '</optgroup>';
+                                                }
+                                            }
+                                        }
+                                    @endphp
                                     <select name="kode_klasifikasi_id" id="kode_klasifikasi_id" class="form-control" required>
-                                        <option value="">-- Pilih Klasifikasi --</option>
-                                        @foreach($groupedKlasifikasi as $urusan => $items)
-                                            <optgroup label="{{ $urusan }}">
-                                                @foreach($items as $item)
-                                                    <option value="{{ $item->id }}">
-                                                        {{ $item->kode }} - {{ Str::limit($item->sub_urusan ?: $item->nama ?: 'Tidak ada deskripsi', 70) }}
-                                                    </option>
-                                                @endforeach
-                                            </optgroup>
-                                        @endforeach
+                                        <option value="">-- Pilih Klasifikasi Leaf --</option>
+                                        @isset($klasifikasiTree)
+                                            @php(renderKlasifikasiOptions($klasifikasiTree))
+                                        @endisset
                                     </select>
-                                    <small class="form-text text-muted">Ditampilkan per urusan. Retensi dihitung otomatis.</small>
+                                    <small class="form-text text-muted">Hanya klasifikasi tingkat akhir (leaf) dapat dipilih. Retensi dihitung otomatis.</small>
                                 </div>
 
                                 <!-- Prihal -->

@@ -48,21 +48,28 @@ class BackfillKlasifikasiHierarchy extends Command
         }
 
         $preview = [];
+        $orphanPromoted = 0;
         foreach ($rows as $row) {
             $parentKode = $this->deriveParentKode($row->kode);
             $level = $this->deriveLevel($row->kode);
             $hasChildren = isset($childrenMap[$row->kode]);
             $isLeaf = !$hasChildren; // default leaf jika tidak punya anak
 
-            // Jika pola akhir huruf (mis: a,b,c) anggap leaf walau nanti mungkin tambah anak
+            // Promosi orphan: jika parentKode ada tetapi parent tidak tercatat
+            if ($parentKode && !in_array($parentKode, $allCodes, true)) {
+                $parentKode = null; // jadikan root
+                $level = 0;
+                $orphanPromoted++;
+            }
+
+            // Jika pola akhir huruf (mis: a,b,c) anggap leaf
             $lastSegment = $this->lastSegment($row->kode);
             if (preg_match('/[a-zA-Z]$/', $lastSegment)) {
                 $isLeaf = true;
             }
-            // Jika retensi ada dan punya children (anomali) tetap tandai leaf
-            if (!is_null($row->retensi) && $hasChildren) {
-                $this->warn("Kode {$row->kode} memiliki retensi tetapi terdeteksi sebagai parent. Menandai leaf.");
-                $isLeaf = true;
+            // Jika punya children jangan paksa leaf meski ada retensi
+            if ($hasChildren) {
+                $isLeaf = false;
             }
 
             $preview[] = [
@@ -78,6 +85,10 @@ class BackfillKlasifikasiHierarchy extends Command
                 $row->is_leaf = $isLeaf;
                 $row->save();
             }
+        }
+
+        if ($orphanPromoted > 0) {
+            $this->warn("Total orphan dipromosikan menjadi root: {$orphanPromoted}");
         }
 
         $this->table(['Kode','Parent','Level','Leaf'], $preview);

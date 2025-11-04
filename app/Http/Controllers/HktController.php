@@ -65,15 +65,17 @@ class HktController extends Controller
     public function create()
     {
         Log::info('Fetching dropdown data for create form');
-        $klasifikasi = Klasifikasi::all();
+        $klasifikasiTree = Klasifikasi::where(function($q){
+            $q->whereNull('parent_kode')->orWhere('parent_kode','');
+        })->with('children.children')->orderBy('kode')->get();
         $tingkatPerkembangan = TingkatPerkembangan::all();
         $lokasiArsip = LokasiArsip::all();
         $nasibAkhir = NasibAkhir::all();
         $unitPengelolas = UnitPengelola::all();
 
-        Log::info('Fetched data for dropdowns: klasifikasi, tingkatPerkembangan, lokasiArsip, nasibAkhir, unitPengelola');
+        Log::info('Fetched hierarchical klasifikasi tree for create form');
 
-        return view('hkt.create', compact('klasifikasi', 'tingkatPerkembangan', 'lokasiArsip', 'nasibAkhir', 'unitPengelolas'));
+        return view('hkt.create', compact('klasifikasiTree', 'tingkatPerkembangan', 'lokasiArsip', 'nasibAkhir', 'unitPengelolas'));
     }
 
     public function store(Request $request)
@@ -91,9 +93,12 @@ class HktController extends Controller
             $this->getAttributeNames()
         );
 
-        // Auto-fill retensi dari klasifikasi
+        // Validasi leaf & ambil retensi
         $klasifikasi = Klasifikasi::find($validated['kode_klasifikasi_id']);
         if ($klasifikasi) {
+            if (!$klasifikasi->isLeaf()) {
+                return back()->withErrors(['kode_klasifikasi_id' => 'Harus memilih klasifikasi tingkat akhir (leaf).'])->withInput();
+            }
             $validated['retensi'] = $klasifikasi->retensi;
         }
         // Sinkron tahun_surat dari tanggal_surat
@@ -129,15 +134,17 @@ class HktController extends Controller
     public function edit(Hkt $hkt)
     {
         Log::info('Fetching data for editing HKT with ID: ' . $hkt->id);
-        $klasifikasi = Klasifikasi::all();
+        $klasifikasiTree = Klasifikasi::where(function ($q) {
+            $q->whereNull('parent_kode')->orWhere('parent_kode', '');
+        })->with('children.children')->orderBy('kode')->get();
         $tingkatPerkembangan = TingkatPerkembangan::all();
         $lokasiArsip = LokasiArsip::all();
         $nasibAkhir = NasibAkhir::all();
         $unitPengelola = UnitPengelola::all();
 
-        Log::info('Fetched data for edit form: klasifikasi, tingkatPerkembangan, lokasiArsip, nasibAkhir, unitPengelola');
+        Log::info('Fetched data for edit form: klasifikasiTree, tingkatPerkembangan, lokasiArsip, nasibAkhir, unitPengelola');
 
-        return view('hkt.edit', compact('hkt', 'klasifikasi', 'tingkatPerkembangan', 'lokasiArsip', 'nasibAkhir', 'unitPengelola'));
+        return view('hkt.edit', compact('hkt', 'klasifikasiTree', 'tingkatPerkembangan', 'lokasiArsip', 'nasibAkhir', 'unitPengelola'));
     }
 
     public function update(Request $request, Hkt $hkt)
@@ -158,6 +165,10 @@ class HktController extends Controller
         if (isset($validated['kode_klasifikasi_id'])) {
             $klasifikasi = Klasifikasi::find($validated['kode_klasifikasi_id']);
             if ($klasifikasi) {
+                // Validasi harus leaf
+                if (!$klasifikasi->isLeaf()) {
+                    return back()->withErrors(['kode_klasifikasi_id' => 'Harus memilih klasifikasi tingkat akhir (leaf).'])->withInput();
+                }
                 $validated['retensi'] = $klasifikasi->retensi;
             }
         }
