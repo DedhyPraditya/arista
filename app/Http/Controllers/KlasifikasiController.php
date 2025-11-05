@@ -82,7 +82,16 @@ class KlasifikasiController extends Controller
             }
 
             // Observer akan otomatis menghitung parent_kode dan level
-            Klasifikasi::create($validated);
+            $klasifikasi = Klasifikasi::create($validated);
+            // Notifikasi CREATE
+            if (function_exists('notifyCreate')) {
+                try {
+                    $identifier = $klasifikasi->kode ?? $klasifikasi->nama ?? ('ID '.$klasifikasi->id);
+                    notifyCreate('Klasifikasi', $identifier, route('klasifikasi.index'));
+                } catch (\Throwable $te) {
+                    \Log::warning('NotifyCreate Klasifikasi gagal: '.$te->getMessage());
+                }
+            }
             Alert::success('Berhasil', 'Data klasifikasi berhasil disimpan.');
             return redirect()->route('klasifikasi.index');
         } catch (\Exception $e) {
@@ -155,6 +164,15 @@ class KlasifikasiController extends Controller
 
             // Observer akan otomatis menghitung parent_kode dan level jika kode berubah
             $klasifikasi->update($validated);
+            // Notifikasi UPDATE
+            if (function_exists('notifyUpdate')) {
+                try {
+                    $identifier = $klasifikasi->kode ?? $klasifikasi->nama ?? ('ID '.$klasifikasi->id);
+                    notifyUpdate('Klasifikasi', $identifier, route('klasifikasi.index'));
+                } catch (\Throwable $te) {
+                    \Log::warning('NotifyUpdate Klasifikasi gagal: '.$te->getMessage());
+                }
+            }
             Alert::success('Berhasil', 'Data klasifikasi berhasil diupdate.');
             return redirect()->route('klasifikasi.index');
         } catch (\Exception $e) {
@@ -167,7 +185,16 @@ class KlasifikasiController extends Controller
     {
         $klasifikasi = Klasifikasi::findOrFail($id);
         try {
+            $identifier = $klasifikasi->kode ?? $klasifikasi->nama; // simpan sebelum delete
             $klasifikasi->delete();
+            // Notifikasi DELETE
+            if (function_exists('notifyDelete')) {
+                try {
+                    notifyDelete('Klasifikasi', $identifier ?? ('ID '.$klasifikasi->id));
+                } catch (\Throwable $te) {
+                    \Log::warning('NotifyDelete Klasifikasi gagal: '.$te->getMessage());
+                }
+            }
             Alert::success('Berhasil', 'Data klasifikasi berhasil dihapus.');
             return redirect()->route('klasifikasi.index');
         } catch (\Exception $e) {

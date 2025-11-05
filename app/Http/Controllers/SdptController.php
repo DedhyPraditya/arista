@@ -94,7 +94,15 @@ class SdptController extends Controller
                     Log::info('File uploaded to: ' . $filePath);
                 }
 
-                Sdpt::create($validated);
+                $record = Sdpt::create($validated);
+                // Notifikasi CREATE
+                if (function_exists('notifyCreate')) {
+                    try {
+                        notifyCreate('SDPT', $record->nomor_surat ?? ('ID '.$record->id), route('sdpt.index'));
+                    } catch (\Throwable $te) {
+                        Log::warning('NotifyCreate SDPT gagal: '.$te->getMessage());
+                    }
+                }
                 Alert::success('Berhasil', 'Data Sdpt berhasil disimpan.');
                 Log::info('Sdpt record successfully created');
                 return redirect()->route('sdpt.index');
@@ -162,6 +170,14 @@ class SdptController extends Controller
                 }
 
                 $sdpt->update($validated);
+                // Notifikasi UPDATE
+                if (function_exists('notifyUpdate')) {
+                    try {
+                        notifyUpdate('SDPT', $sdpt->nomor_surat ?? ('ID '.$sdpt->id), route('sdpt.index'));
+                    } catch (\Throwable $te) {
+                        Log::warning('NotifyUpdate SDPT gagal: '.$te->getMessage());
+                    }
+                }
                 Log::info('Sdpt with ID ' . $sdpt->id . ' successfully updated');
                 Alert::success('Berhasil', 'Data Sdpt berhasil diupdate.');
                 return redirect()->route('sdpt.index');
@@ -175,8 +191,17 @@ class SdptController extends Controller
     public function destroy(Sdpt $sdpt)
     {
         Log::info('Destroy method called for Sdpt with ID: ' . $sdpt->id);
+            $nomorSurat = $sdpt->nomor_surat; // simpan sebelum delete
             $this->deleteFile($sdpt->file_path);
             $sdpt->delete();
+            // Notifikasi DELETE
+            if (function_exists('notifyDelete')) {
+                try {
+                    notifyDelete('SDPT', $nomorSurat ?? ('ID '.$sdpt->id));
+                } catch (\Throwable $te) {
+                    Log::warning('NotifyDelete SDPT gagal: '.$te->getMessage());
+                }
+            }
             Log::info('Sdpt with ID ' . $sdpt->id . ' successfully deleted');
             Alert::success('Berhasil', 'Data Sdpt berhasil dihapus.');
             return redirect()->route('sdpt.index');
