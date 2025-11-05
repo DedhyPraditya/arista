@@ -18,6 +18,36 @@
 
     <!-- Topbar Navbar -->
     <ul class="navbar-nav ml-auto">
+
+        <!-- Nav Item - Alerts -->
+        <li class="nav-item dropdown no-arrow mx-1">
+            <a class="nav-link dropdown-toggle" href="#" id="alertsDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <i class="fas fa-bell fa-fw"></i>
+                <!-- Counter - Alerts -->
+                <span class="badge badge-danger badge-counter" id="notification-badge" style="display: none;">0</span>
+            </a>
+            <!-- Dropdown - Alerts -->
+            <div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in" aria-labelledby="alertsDropdown" style="width: 380px;">
+                <h6 class="dropdown-header">
+                    <i class="fas fa-bell mr-2"></i>
+                    Pusat Notifikasi
+                </h6>
+                <div id="notifications-container">
+                    <!-- Notifications will be loaded here -->
+                    <div class="text-center py-3">
+                        <div class="spinner-border spinner-border-sm text-primary" role="status">
+                            <span class="sr-only">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+                <a class="dropdown-item text-center small text-gray-500" href="{{ route('notifications.index') }}">
+                    Lihat Semua Notifikasi
+                </a>
+            </div>
+        </li>
+
+        <div class="topbar-divider d-none d-sm-block"></div>
+
         <!-- Nav Item - User Logout -->
         <li class="nav-item dropdown no-arrow">
             <form method="POST" action="{{ route('logout') }}" class="nav-link p-0">

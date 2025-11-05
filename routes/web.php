@@ -76,6 +76,13 @@ Route::middleware([
     // File management routes
     Route::resource('files', FileController::class);
     Route::get('/files/download/{file}', [FileController::class, 'download'])->name('files.download');
+
+    // Notification routes
+    Route::get('/notifications', [App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
+    Route::get('/notifications/unread', [App\Http\Controllers\NotificationController::class, 'getUnread']);
+    Route::post('/notifications/{id}/read', [App\Http\Controllers\NotificationController::class, 'markAsRead']);
+    Route::post('/notifications/mark-all-read', [App\Http\Controllers\NotificationController::class, 'markAllAsRead']);
+    Route::delete('/notifications/{id}', [App\Http\Controllers\NotificationController::class, 'destroy']);
 });
 
 

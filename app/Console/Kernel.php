@@ -23,7 +23,11 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        // $schedule->command('inspire')->hourly();
+        // Check retensi arsip setiap hari jam 08:00 pagi
+        $schedule->command('arsip:check-retensi')->dailyAt('08:00');
+        
+        // Check storage setiap hari jam 09:00 pagi
+        $schedule->command('arsip:check-storage')->dailyAt('09:00');
     }
 
     /**

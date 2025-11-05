@@ -117,7 +117,11 @@ class KeuanganController extends Controller
                 }
 
                 // Create the Keuangan record
-                Keuangan::create($validated);
+                $keuangan = Keuangan::create($validated);
+                
+                // Notifikasi Create
+                notifyCreate('Keuangan', $keuangan->nomor_surat, route('keuangan.index'));
+                
                 Alert::success('Berhasil', 'Data berhasil disimpan.');
                 Log::info('KEUANGAN record successfully created');
                 return redirect()->route('keuangan.index');
@@ -192,6 +196,10 @@ class KeuanganController extends Controller
 
                 $keuangan->update($validated);
                 Log::info('Keuangan with ID ' . $keuangan->id . ' successfully updated');
+                
+                // Notifikasi Update
+                notifyUpdate('Keuangan', $keuangan->nomor_surat, route('keuangan.index'));
+                
                 Alert::success('Berhasil', 'Data Keuangan berhasil diupdate.');
                 return redirect()->route('keuangan.index');
 
@@ -206,12 +214,19 @@ class KeuanganController extends Controller
     public function destroy(Keuangan $keuangan)
     {
         Log::info('Destroy method called for Keuangan with ID: ' . $keuangan->id);
+        
+        // Simpan nomor surat sebelum dihapus
+        $nomorSurat = $keuangan->nomor_surat;
 
             // Delete file from storage menggunakan trait
             $this->deleteFile($keuangan->file_path);
 
         $keuangan->delete();
         Log::info('Keuangan with ID ' . $keuangan->id . ' successfully deleted');
+        
+        // Notifikasi Delete
+        notifyDelete('Keuangan', $nomorSurat);
+        
         Alert::success('Berhasil', 'Data Keuangan berhasil dihapus.');
         return redirect()->route('keuangan.index');
     }

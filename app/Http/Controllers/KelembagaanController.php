@@ -92,7 +92,15 @@ class KelembagaanController extends Controller
                     Log::info('File uploaded to: ' . $filePath);
                 }
 
-                Kelembagaan::create($validated);
+                $kelembagaan = Kelembagaan::create($validated);
+                // Notifikasi CREATE
+                if (function_exists('notifyCreate')) {
+                    try {
+                        notifyCreate('Kelembagaan', $kelembagaan->nomor_surat ?? ('ID '.$kelembagaan->id), route('kelembagaan.index'));
+                    } catch (\Throwable $te) {
+                        Log::warning('NotifyCreate Kelembagaan gagal: '.$te->getMessage());
+                    }
+                }
                 Alert::success('Berhasil', 'Data berhasil disimpan.');
                 Log::info('Kelembagaan record successfully created');
                 return redirect()->route('kelembagaan.index');
@@ -152,6 +160,14 @@ class KelembagaanController extends Controller
                 }
 
                 $kelembagaan->update($validated);
+                // Notifikasi UPDATE
+                if (function_exists('notifyUpdate')) {
+                    try {
+                        notifyUpdate('Kelembagaan', $kelembagaan->nomor_surat ?? ('ID '.$kelembagaan->id), route('kelembagaan.index'));
+                    } catch (\Throwable $te) {
+                        Log::warning('NotifyUpdate Kelembagaan gagal: '.$te->getMessage());
+                    }
+                }
                 Alert::success('Berhasil', 'Data Kelembagaan berhasil diupdate.');
                 return redirect()->route('kelembagaan.index');
             } catch (\Exception $e) {
@@ -163,8 +179,17 @@ class KelembagaanController extends Controller
 
     public function destroy(Kelembagaan $kelembagaan)
     {
+           $nomorSurat = $kelembagaan->nomor_surat; // simpan sebelum delete
            $this->deleteFile($kelembagaan->file_path);
            $kelembagaan->delete();
+           // Notifikasi DELETE
+           if (function_exists('notifyDelete')) {
+                try {
+                    notifyDelete('Kelembagaan', $nomorSurat ?? ('ID '.$kelembagaan->id));
+                } catch (\Throwable $te) {
+                    Log::warning('NotifyDelete Kelembagaan gagal: '.$te->getMessage());
+                }
+           }
            Alert::success('Berhasil', 'Data Kelembagaan berhasil dihapus.');
            return redirect()->route('kelembagaan.index');
     }

@@ -5,6 +5,7 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="description" content="">
     <meta name="author" content="">
     <title>@yield('title', 'Dashboard')</title>
@@ -55,6 +56,34 @@
             flex-direction: column;
         }
         .spinner-border { width: 3rem; height: 3rem; }
+
+        /* Notification Styles */
+        .notification-item.unread {
+            background-color: #f8f9fc;
+            border-left: 3px solid #4e73df;
+        }
+        .notification-item:hover {
+            background-color: #eaecf4;
+        }
+        .icon-circle {
+            height: 2.5rem;
+            width: 2.5rem;
+            border-radius: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .badge-counter {
+            position: absolute;
+            transform: scale(0.7);
+            transform-origin: top right;
+            right: 0.25rem;
+            margin-top: -0.25rem;
+        }
+        .dropdown-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
     </style>
     @livewireStyles
 
@@ -111,7 +140,137 @@
             window.addEventListener('pageshow', function() {
                 overlay.style.display = 'none';
             });
+
+            // Notification System
+            loadNotifications();
+
+            // Refresh notifications every 30 seconds
+            setInterval(loadNotifications, 30000);
+
+            // Handle notification dropdown toggle
+            $('#alertsDropdown').on('click', function() {
+                loadNotifications();
+            });
         });
+
+        function loadNotifications() {
+            $.ajax({
+                url: '/notifications/unread',
+                method: 'GET',
+                success: function(response) {
+                    updateNotificationBadge(response.unread_count);
+                    renderNotifications(response.notifications);
+                },
+                error: function() {
+                    console.error('Failed to load notifications');
+                }
+            });
+        }
+
+        function updateNotificationBadge(count) {
+            const badge = $('#notification-badge');
+            if (count > 0) {
+                badge.text(count > 99 ? '99+' : count).show();
+            } else {
+                badge.hide();
+            }
+        }
+
+        function renderNotifications(notifications) {
+            const container = $('#notifications-container');
+
+            if (notifications.length === 0) {
+                container.html(`
+                    <div class="text-center py-4">
+                        <i class="fas fa-inbox fa-2x text-gray-300 mb-2"></i>
+                        <p class="text-gray-500 mb-0">Tidak ada notifikasi</p>
+                    </div>
+                `);
+                return;
+            }
+
+            let html = '';
+            notifications.forEach(function(notification) {
+                const iconClass = getIconClass(notification.type);
+                const timeAgo = formatTimeAgo(notification.created_at);
+
+                html += `
+                    <a class="dropdown-item d-flex align-items-center notification-item ${notification.is_read ? 'read' : 'unread'}"
+                       href="${notification.url || '#'}"
+                       data-id="${notification.id}"
+                       onclick="markAsRead(${notification.id})">
+                        <div class="mr-3">
+                            <div class="icon-circle bg-${iconClass}">
+                                <i class="fas ${notification.icon} text-white"></i>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="small text-gray-500">${timeAgo}</div>
+                            <span class="font-weight-bold">${notification.title}</span>
+                            <div class="small">${notification.message}</div>
+                        </div>
+                    </a>
+                `;
+            });
+
+            container.html(html);
+        }
+
+        function getIconClass(type) {
+            const classes = {
+                'info': 'primary',
+                'success': 'success',
+                'warning': 'warning',
+                'danger': 'danger'
+            };
+            return classes[type] || 'primary';
+        }
+
+        function formatTimeAgo(datetime) {
+            const date = new Date(datetime);
+            const now = new Date();
+            const seconds = Math.floor((now - date) / 1000);
+
+            if (seconds < 60) return 'Baru saja';
+            if (seconds < 3600) return Math.floor(seconds / 60) + ' menit lalu';
+            if (seconds < 86400) return Math.floor(seconds / 3600) + ' jam lalu';
+            if (seconds < 604800) return Math.floor(seconds / 86400) + ' hari lalu';
+
+            return date.toLocaleDateString('id-ID');
+        }
+
+        function markAsRead(id) {
+            $.ajax({
+                url: `/notifications/${id}/read`,
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function() {
+                    loadNotifications();
+                }
+            });
+        }
+
+        function markAllAsRead() {
+            $.ajax({
+                url: '/notifications/mark-all-read',
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function() {
+                    loadNotifications();
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil',
+                        text: 'Semua notifikasi telah ditandai sebagai sudah dibaca',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                }
+            });
+        }
     </script>
 </body>
 </html>

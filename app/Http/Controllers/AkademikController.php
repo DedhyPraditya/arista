@@ -96,7 +96,11 @@ class AkademikController extends Controller
                     Log::info('File uploaded to: ' . $filePath);
                 }
 
-                Akademik::create($validated);
+                $akademik = Akademik::create($validated);
+
+                // Notifikasi
+                notifyCreate('Akademik', $akademik->nomor_surat, route('akademik.index'));
+
                 Alert::success('Berhasil', 'Data Akademik berhasil disimpan.');
                 Log::info('Akademik record successfully created');
                 return redirect()->route('akademik.index');
@@ -165,6 +169,10 @@ class AkademikController extends Controller
                 }
 
                 $akademik->update($validated);
+
+                // Notifikasi
+                notifyUpdate('Akademik', $akademik->nomor_surat, route('akademik.index'));
+
                 Log::info('Akademik with ID ' . $akademik->id . ' successfully updated');
                 Alert::success('Berhasil', 'Data Akademik berhasil diupdate.');
                 return redirect()->route('akademik.index');
@@ -178,8 +186,13 @@ class AkademikController extends Controller
     public function destroy(Akademik $akademik)
     {
         Log::info('Destroy method called for Akademik with ID: ' . $akademik->id);
+            $nomorSurat = $akademik->nomor_surat; // Simpan sebelum dihapus
             $this->deleteFile($akademik->file_path);
             $akademik->delete();
+
+            // Notifikasi
+            notifyDelete('Akademik', $nomorSurat);
+
             Log::info('Akademik with ID ' . $akademik->id . ' successfully deleted');
             Alert::success('Berhasil', 'Data Akademik berhasil dihapus.');
             return redirect()->route('akademik.index');

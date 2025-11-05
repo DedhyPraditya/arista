@@ -121,8 +121,12 @@ class HktController extends Controller
 
         // Membuat record HKT di database
         try {
-            Hkt::create($validated);
+            $hkt = Hkt::create($validated);
             Log::info('HKT record successfully created');
+            
+            // Notifikasi Create
+            notifyCreate('HKT', $hkt->nomor_surat, route('hkt.index'));
+            
             Alert::success('Berhasil', 'Data HKT berhasil disimpan.');
             return redirect()->route('hkt.index');
         } catch (\Exception $e) {
@@ -216,18 +220,29 @@ class HktController extends Controller
 
         $hkt->update($validated);
         Log::info('HKT with ID ' . $hkt->id . ' successfully updated');
-        Alert::success('Berhasil', 'Data HKT berhasil diupdate.');
-        return redirect()->route('hkt.index');
-    }
-
+        
+        // Notifikasi Update
+        notifyUpdate('HKT', $hkt->nomor_surat, route('hkt.index'));
+        
     public function destroy(Hkt $hkt)
     {
         Log::info('Destroy method called for HKT with ID: ' . $hkt->id);
+        
+        // Simpan nomor surat sebelum dihapus
+        $nomorSurat = $hkt->nomor_surat;
 
             // Delete file from storage menggunakan trait
             $this->deleteFile($hkt->file_path);
 
         $hkt->delete();
+        Log::info('HKT with ID ' . $hkt->id . ' successfully deleted');
+        
+        // Notifikasi Delete
+        notifyDelete('HKT', $nomorSurat);
+        
+        Alert::success('Berhasil', 'Data HKT berhasil dihapus.');
+        return redirect()->route('hkt.index');
+    }   $hkt->delete();
         Log::info('HKT with ID ' . $hkt->id . ' successfully deleted');
         Alert::success('Berhasil', 'Data HKT berhasil dihapus.');
         return redirect()->route('hkt.index');

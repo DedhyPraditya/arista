@@ -336,6 +336,11 @@ class FileController extends Controller
                 return response($content, 206, $headers);
             } else {
                 $headers['Content-Length'] = $fileSize;
+
+                // Notifikasi download
+                $formattedSize = $this->formatSize($fileSize);
+                notifyDownload($fileName, $formattedSize);
+
                 return response()->download($absolutePath, $fileName, $headers);
             }
         } catch (\Exception $e) {
