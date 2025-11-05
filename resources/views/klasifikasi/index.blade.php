@@ -146,6 +146,24 @@
                         <input type="number" class="form-control" id="retensi" name="retensi" placeholder="Isi hanya untuk klasifikasi leaf">
                         <small class="form-text text-muted">Kosongkan jika ini kategori induk / akan punya sub-klasifikasi.</small>
                     </div>
+                    <div class="form-group">
+                        <label for="klasifikasi_leaf">Klasifikasi Leaf (Optional)</label>
+                        <select name="klasifikasi_leaf" id="klasifikasi_leaf" class="form-control">
+                            <option value="">-- Pilih Klasifikasi Leaf --</option>
+                            @foreach ($klasifikasiTree as $parent)
+                                <optgroup label="{{ $parent->kode }} - {{ $parent->nama }}">
+                                    @foreach ($parent->children as $child)
+                                        <option value="{{ $child->id }}">
+                                            {{ $child->kode }} - {{ $child->nama }}
+                                            @if($child->urusan) | Urusan: {{ $child->urusan }} @endif
+                                            @if($child->sub_urusan) | Sub Urusan: {{ $child->sub_urusan }} @endif
+                                        </option>
+                                    @endforeach
+                                </optgroup>
+                            @endforeach
+                        </select>
+                        <small class="form-text text-muted">Pilih klasifikasi leaf jika ada, untuk mengaitkan dengan klasifikasi ini.</small>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fas fa-close"></i> Tutup</button>
@@ -198,6 +216,24 @@
                         <label for="retensi">Retensi (Tahun) <span class="badge badge-secondary">Optional</span></label>
                         <input type="number" class="form-control" id="retensi" name="retensi" value="{{ old('retensi', $item->retensi) }}" placeholder="Isi hanya untuk leaf">
                         <small class="form-text text-muted">Biarkan kosong jika menjadi kategori induk.</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="klasifikasi_leaf">Klasifikasi Leaf (Optional)</label>
+                        <select name="klasifikasi_leaf" id="klasifikasi_leaf" class="form-control">
+                            <option value="">-- Pilih Klasifikasi Leaf --</option>
+                            @foreach ($klasifikasiTree as $parent)
+                                <optgroup label="{{ $parent->kode }} - {{ $parent->nama }}">
+                                    @foreach ($parent->children as $child)
+                                        <option value="{{ $child->id }}" @if($child->id == old('klasifikasi_leaf', $item->klasifikasi_leaf)) selected @endif>
+                                            {{ $child->kode }} - {{ $child->nama }}
+                                            @if($child->urusan) | Urusan: {{ $child->urusan }} @endif
+                                            @if($child->sub_urusan) | Sub Urusan: {{ $child->sub_urusan }} @endif
+                                        </option>
+                                    @endforeach
+                                </optgroup>
+                            @endforeach
+                        </select>
+                        <small class="form-text text-muted">Pilih klasifikasi leaf jika ada, untuk mengaitkan dengan klasifikasi ini.</small>
                     </div>
                 </div>
                 <div class="modal-footer">
