@@ -116,6 +116,15 @@
             </div>
             <form action="{{ route('klasifikasi.store') }}" method="POST">
                 @csrf
+                @if ($errors->any())
+                    <div class="alert alert-danger">
+                        <ul class="mb-0">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
                 <div class="modal-body">
                     <div class="form-group">
                         <label for="kode">Kode Klasifikasi</label>
