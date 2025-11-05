@@ -51,6 +51,12 @@ class KlasifikasiController extends Controller
             'retensi.integer' => 'Retensi harus berupa angka.',
         ]);
 
+        // Validasi: nama harus unik di seluruh tabel
+        $exists = \App\Models\Klasifikasi::where('nama', $validated['nama'])->exists();
+        if ($exists) {
+            return back()->withErrors(['Nama klasifikasi sudah digunakan.'])->withInput();
+        }
+
         // Validasi custom: kombinasi kode, nama, urusan, sub_urusan harus unik
         $exists = \App\Models\Klasifikasi::where('kode', $validated['kode'])
             ->where('nama', $validated['nama'])
