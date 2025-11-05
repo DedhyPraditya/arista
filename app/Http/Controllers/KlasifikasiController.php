@@ -20,7 +20,15 @@ class KlasifikasiController extends Controller
             });
         }
         $klasifikasi = $query->orderBy('kode', 'asc')->paginate(10);
-        return view('klasifikasi.index', compact('klasifikasi'));
+
+        // Builder tree sederhana
+        $all = Klasifikasi::orderBy('kode')->get();
+        $klasifikasiTree = $all->where('parent_kode', null)->map(function($parent) use ($all) {
+            $parent->children = $all->where('parent_kode', $parent->kode)->values();
+            return $parent;
+        });
+
+        return view('klasifikasi.index', compact('klasifikasi', 'klasifikasiTree'));
     }
 
     public function create()
