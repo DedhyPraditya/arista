@@ -32,17 +32,26 @@ class KlasifikasiController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'kode' => 'required|unique:klasifikasi|max:50',
+            'kode' => 'required|max:50',
             'urusan' => 'nullable|string|max:255',
             'sub_urusan' => 'nullable|string',
             'nama' => 'required|max:255',
-            'retensi' => 'nullable|integer|min:0', // sekarang optional untuk parent
+            'retensi' => 'nullable|integer|min:0',
         ], [
             'kode.required' => 'Kode klasifikasi wajib diisi.',
-            'kode.unique' => 'Kode klasifikasi sudah digunakan.',
             'nama.required' => 'Nama/judul wajib diisi.',
             'retensi.integer' => 'Retensi harus berupa angka.',
         ]);
+
+        // Validasi custom: kombinasi kode, nama, urusan, sub_urusan harus unik
+        $exists = \App\Models\Klasifikasi::where('kode', $validated['kode'])
+            ->where('nama', $validated['nama'])
+            ->where('urusan', $validated['urusan'])
+            ->where('sub_urusan', $validated['sub_urusan'])
+            ->exists();
+        if ($exists) {
+            return back()->withErrors(['Data klasifikasi dengan kombinasi tersebut sudah ada.'])->withInput();
+        }
 
         // Derive hierarchy attributes from kode
         $segments = explode('.', $validated['kode']);
