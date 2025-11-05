@@ -310,10 +310,34 @@ class FileController extends Controller
                 return redirect()->back();
             }
 
-            // Fallback manual jika metode download tidak dikenali oleh analyzer
             $absolutePath = Storage::disk('public')->path($file->file_path);
-            return response()->download($absolutePath, $file->original_name);
+            $fileSize = filesize($absolutePath);
+            $fileName = $file->original_name;
+            $headers = [
+                'Content-Type' => mime_content_type($absolutePath),
+                'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
+                'Accept-Ranges' => 'bytes',
+            ];
 
+            // HTTP Range support
+            if (isset($_SERVER['HTTP_RANGE'])) {
+                $range = $_SERVER['HTTP_RANGE'];
+                list(, $range) = explode('=', $range, 2);
+                list($start, $end) = explode('-', $range);
+                $start = intval($start);
+                $end = $end !== '' ? intval($end) : ($fileSize - 1);
+                $length = $end - $start + 1;
+                $headers['Content-Range'] = "bytes $start-$end/$fileSize";
+                $headers['Content-Length'] = $length;
+                $fp = fopen($absolutePath, 'rb');
+                fseek($fp, $start);
+                $content = fread($fp, $length);
+                fclose($fp);
+                return response($content, 206, $headers);
+            } else {
+                $headers['Content-Length'] = $fileSize;
+                return response()->download($absolutePath, $fileName, $headers);
+            }
         } catch (\Exception $e) {
             Log::error('File download error: ' . $e->getMessage());
             Alert::error('Gagal', 'Terjadi kesalahan saat mengunduh file.');
