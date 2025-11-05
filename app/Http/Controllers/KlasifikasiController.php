@@ -81,25 +81,13 @@ class KlasifikasiController extends Controller
                 }
             }
 
+            // Observer akan otomatis menghitung parent_kode dan level
             Klasifikasi::create($validated);
             Alert::success('Berhasil', 'Data klasifikasi berhasil disimpan.');
             return redirect()->route('klasifikasi.index');
         } catch (\Exception $e) {
-            Alert::error('Error', 'Terjadi kesalahan saat menyimpan data.');
+            Alert::error('Error', 'Terjadi kesalahan saat menyimpan data: ' . $e->getMessage());
             return back()->withInput();
-        }
-
-        try {
-            Klasifikasi::create($validated);
-            Alert::success('Berhasil', 'Data klasifikasi berhasil disimpan.');
-            return redirect()->route('klasifikasi.index');
-        } catch (\Illuminate\Database\QueryException $e) {
-            if ($e->getCode() == 23000) {
-                Alert::error('Gagal', 'Kode klasifikasi sudah digunakan.');
-                return redirect()->route('klasifikasi.index');
-            }
-            Alert::error('Error', 'Terjadi kesalahan pada database.');
-            return redirect()->route('klasifikasi.index');
         }
     }
 
@@ -165,23 +153,12 @@ class KlasifikasiController extends Controller
                 }
             }
 
-            // Recalculate hierarchy (if kode berubah)
-            $segments = explode('.', $validated['kode']);
-            $parentKode = count($segments) > 1 ? implode('.', array_slice($segments, 0, -1)) : null;
-            $level = count($segments) - 1;
-
-            if (!array_key_exists('retensi', $validated) || $validated['retensi'] === '') {
-                $validated['retensi'] = null;
-            }
-
-            $validated['parent_kode'] = $parentKode;
-            $validated['level'] = $level;
-
+            // Observer akan otomatis menghitung parent_kode dan level jika kode berubah
             $klasifikasi->update($validated);
             Alert::success('Berhasil', 'Data klasifikasi berhasil diupdate.');
             return redirect()->route('klasifikasi.index');
         } catch (\Exception $e) {
-            Alert::error('Error', 'Terjadi kesalahan saat mengupdate data.');
+            Alert::error('Error', 'Terjadi kesalahan saat mengupdate data: ' . $e->getMessage());
             return back()->withInput();
         }
     }

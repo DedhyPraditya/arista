@@ -8,12 +8,32 @@ use Illuminate\Support\Facades\Log;
 class KlasifikasiObserver
 {
     /**
+     * Handle the Klasifikasi "creating" event.
+     * SEBELUM record dibuat, hitung parent_kode dan level dari kode.
+     */
+    public function creating(Klasifikasi $klasifikasi): void
+    {
+        $this->calculateHierarchy($klasifikasi);
+    }
+
+    /**
      * Handle the Klasifikasi "created" event.
      * Setelah record baru dibuat, cek apakah parent perlu diupdate is_leaf = false.
      */
     public function created(Klasifikasi $klasifikasi): void
     {
         $this->updateParentLeafStatus($klasifikasi->parent_kode);
+    }
+
+    /**
+     * Handle the Klasifikasi "updating" event.
+     * SEBELUM record diupdate, recalculate hierarchy jika kode berubah.
+     */
+    public function updating(Klasifikasi $klasifikasi): void
+    {
+        if ($klasifikasi->isDirty('kode')) {
+            $this->calculateHierarchy($klasifikasi);
+        }
     }
 
     /**
@@ -50,6 +70,22 @@ class KlasifikasiObserver
     }
 
     /**
+     * Hitung parent_kode dan level secara otomatis dari kode.
+     * Contoh: HK.00.01 -> parent: HK.00, level: 2
+     */
+    protected function calculateHierarchy(Klasifikasi $klasifikasi): void
+    {
+        $segments = explode('.', $klasifikasi->kode);
+        $level = count($segments) - 1;
+        $parentKode = $level > 0 ? implode('.', array_slice($segments, 0, -1)) : null;
+
+        $klasifikasi->parent_kode = $parentKode;
+        $klasifikasi->level = $level;
+
+        Log::info("Auto-calculated hierarchy for '{$klasifikasi->kode}': parent='{$parentKode}', level={$level}");
+    }
+
+    /**
      * Update status is_leaf dari parent node.
      * Jika parent punya anak, set is_leaf = false. Jika tidak, set is_leaf = true.
      */
@@ -65,15 +101,15 @@ class KlasifikasiObserver
         }
 
         $hasChildren = Klasifikasi::where('parent_kode', $parentKode)->exists();
-        
+
         // Update is_leaf tanpa trigger observer lagi (gunakan withoutEvents atau direct query)
         $shouldBeLeaf = !$hasChildren;
-        
+
         if ($parent->is_leaf !== $shouldBeLeaf) {
             $parent->timestamps = false; // jangan update updated_at
             $parent->is_leaf = $shouldBeLeaf;
             $parent->saveQuietly(); // save tanpa trigger event
-            
+
             Log::info("Auto-updated is_leaf for parent '{$parentKode}' to " . ($shouldBeLeaf ? 'true' : 'false'));
         }
     }
@@ -95,7 +131,7 @@ class KlasifikasiObserver
             $node->timestamps = false;
             $node->is_leaf = $shouldBeLeaf;
             $node->saveQuietly();
-            
+
             Log::info("Auto-updated is_leaf for node '{$kode}' to " . ($shouldBeLeaf ? 'true' : 'false'));
         }
     }

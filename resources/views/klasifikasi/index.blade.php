@@ -2,6 +2,7 @@
 @section('title', 'Daftar Klasifikasi')
 @section('content')
 <div class="container-fluid">
+<!-- Main content wrapper -->
     <!-- Page Heading -->
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
         <h1 class="h3 mb-0 text-gray-800">Data Klasifikasi</h1>
@@ -225,7 +226,10 @@
 </div>
 @endforeach
 
-@if (session('success'))
+@endsection
+
+@push('scripts')
+    @if (session('success'))
         <script>
             Swal.fire({
                 icon: 'success',
@@ -236,6 +240,7 @@
             });
         </script>
     @endif
+
     @if (session('error'))
         <script>
             Swal.fire({
@@ -247,16 +252,18 @@
             });
         </script>
     @endif
+
     @if ($errors->any())
         <script>
             Swal.fire({
                 icon: 'error',
                 title: 'Validasi Gagal',
-                html: `{!! implode('<br>', $errors->all()) !!}`,
+                html: '{!! implode("<br>", $errors->all()) !!}',
                 showConfirmButton: true
             });
         </script>
     @endif
+
 
 <script>
     // Live hint parent & level untuk modal create
@@ -293,4 +300,4 @@
         });
     }
 </script>
-@endsection
+@endpush
