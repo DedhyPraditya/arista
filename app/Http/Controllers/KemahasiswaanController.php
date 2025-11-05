@@ -94,7 +94,15 @@ class KemahasiswaanController extends Controller
                 Log::info('File uploaded to: ' . $filePath);
             }
 
-            Kemahasiswaan::create($validated);
+            $record = Kemahasiswaan::create($validated);
+            // Notifikasi CREATE
+            if (function_exists('notifyCreate')) {
+                try {
+                    notifyCreate('Kemahasiswaan', $record->nomor_surat ?? ('ID '.$record->id), route('kemahasiswaan.index'));
+                } catch (\Throwable $te) {
+                    Log::warning('NotifyCreate Kemahasiswaan gagal: '.$te->getMessage());
+                }
+            }
             Alert::success('Berhasil', 'Data Kemahasiswaan berhasil disimpan.');
             Log::info('Kemahasiswaan record successfully created');
             return redirect()->route('kemahasiswaan.index');
@@ -162,6 +170,14 @@ class KemahasiswaanController extends Controller
             }
 
             $kemahasiswaan->update($validated);
+            // Notifikasi UPDATE
+            if (function_exists('notifyUpdate')) {
+                try {
+                    notifyUpdate('Kemahasiswaan', $kemahasiswaan->nomor_surat ?? ('ID '.$kemahasiswaan->id), route('kemahasiswaan.index'));
+                } catch (\Throwable $te) {
+                    Log::warning('NotifyUpdate Kemahasiswaan gagal: '.$te->getMessage());
+                }
+            }
             Log::info('Kemahasiswaan with ID ' . $kemahasiswaan->id . ' successfully updated');
             Alert::success('Berhasil', 'Data Kemahasiswaan berhasil diupdate.');
             return redirect()->route('kemahasiswaan.index');
@@ -175,8 +191,17 @@ class KemahasiswaanController extends Controller
     public function destroy(Kemahasiswaan $kemahasiswaan)
     {
         Log::info('Destroy method called for Kemahasiswaan with ID: ' . $kemahasiswaan->id);
+        $nomorSurat = $kemahasiswaan->nomor_surat; // simpan sebelum delete
         $this->deleteFile($kemahasiswaan->file_path);
         $kemahasiswaan->delete();
+        // Notifikasi DELETE
+        if (function_exists('notifyDelete')) {
+            try {
+                notifyDelete('Kemahasiswaan', $nomorSurat ?? ('ID '.$kemahasiswaan->id));
+            } catch (\Throwable $te) {
+                Log::warning('NotifyDelete Kemahasiswaan gagal: '.$te->getMessage());
+            }
+        }
         Log::info('Kemahasiswaan with ID ' . $kemahasiswaan->id . ' successfully deleted');
         Alert::success('Berhasil', 'Data Kemahasiswaan berhasil dihapus.');
         return redirect()->route('kemahasiswaan.index');
