@@ -38,25 +38,25 @@ Route::post('/email/verification-notification', function (Request $request) {
     return back()->with('message', 'Email verifikasi telah dikirim ulang!');
 })->middleware(['auth', 'throttle:6,1'])->name('verification.send');
 
-// Protected routes - require authentication and email verification
+// Protected routes - require authentication
 Route::middleware([
     'auth:sanctum',
     config('jetstream.auth_session'),
-    'verified'
+    // 'verified' // middleware verifikasi email dihapus
 ])->group(function () {
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    
+
     // Custom Profile Route (using SBAdmin2 layout)
     Route::get('/profile', function () {
         return view('profile.custom-show');
     })->name('profile.custom');
-    
+
     // Two Factor Authentication Setup
     Route::get('/profile/two-factor-setup', function () {
         return view('profile.two-factor-setup');
     })->name('profile.two-factor-setup');
-    
+
     // Master data routes
     Route::resource('klasifikasi', KlasifikasiController::class);
     Route::resource('pencipta_arsip', PenciptaArsipController::class);
@@ -64,7 +64,7 @@ Route::middleware([
     Route::resource('unit', UnitPengelolaController::class);
     Route::resource('tingkat', TingkatPerkembanganController::class);
     Route::resource('nasib', NasibAkhirController::class);
-    
+
     // Document management routes
     Route::resource('hkt', HktController::class);
     Route::resource('keuangan', KeuanganController::class);
@@ -72,7 +72,7 @@ Route::middleware([
     Route::resource('kemahasiswaan', KemahasiswaanController::class);
     Route::resource('akademik', AkademikController::class);
     Route::resource('sdpt', SdptController::class);
-    
+
     // File management routes
     Route::resource('files', FileController::class);
     Route::get('/files/download/{file}', [FileController::class, 'download'])->name('files.download');

@@ -14,6 +14,16 @@
                 <form method="POST" action="{{ route('login') }}">
                     @csrf
 
+                    @if ($errors->any())
+                        <div class="mb-4 text-red-600 text-sm">
+                            <ul>
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
                     <div>
                         <x-label for="email" value="{{ __('Email') }}" />
                         <x-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autofocus autocomplete="username" />
