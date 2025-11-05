@@ -106,7 +106,7 @@
                     Menampilkan {{ $klasifikasi->firstItem() ?? 0 }} sampai {{ $klasifikasi->lastItem() ?? 0 }} dari {{ $klasifikasi->total() }} data
                 </div>
                 <div>
-                    {{ $klasifikasi->links() }}
+                    {{ $klasifikasi->appends(request()->except('page'))->links() }}
                 </div>
             </div>
         </div>
