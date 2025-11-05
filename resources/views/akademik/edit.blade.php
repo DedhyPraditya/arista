@@ -28,7 +28,7 @@
 
                         <div class="form-group">
                             <label for="tanggal_surat">Tanggal Surat</label>
-                            <input type="date" name="tanggal_surat" id="tanggal_surat" class="form-control" value="{{ old('tanggal_surat', $akademik->tanggal_surat) }}" required>
+                            <input type="date" name="tanggal_surat" id="tanggal_surat" class="form-control" value="{{ old('tanggal_surat', $akademik->tanggal_surat ? \Carbon\Carbon::parse($akademik->tanggal_surat)->format('Y-m-d') : '') }}" required>
                         </div>
 
                         <div class="form-group">
@@ -151,7 +151,7 @@
 
                         <div class="form-group">
                             <label for="lampiran">Lampiran</label>
-                            <input type="text" name="lampiran" id="lampiran" class="form-control" value="{{ old('lampiran', $akademik->lampiran) }}" required>
+                            <input type="text" name="lampiran" id="lampiran" class="form-control" value="{{ old('lampiran', $akademik->lampiran) }}">
                         </div>
 
                         <!-- Upload File -->
@@ -186,23 +186,6 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Data klasifikasi untuk auto-fill retensi
-    const klasifikasiData = {!! json_encode($klasifikasi->map(fn($k) => ['id' => $k->id, 'retensi' => $k->retensi])) !!};
-
-    const klasifikasiSelect = document.getElementById('kode_klasifikasi_id');
-    const retensiInput = document.getElementById('retensi');
-    const retensiDisplay = document.getElementById('retensi_display');
-
-    // Auto-fill retensi saat klasifikasi diubah
-    klasifikasiSelect?.addEventListener('change', function() {
-        const selectedId = parseInt(this.value);
-        const selected = klasifikasiData.find(k => k.id === selectedId);
-        if (selected) {
-            retensiInput.value = selected.retensi; // hidden field
-            retensiDisplay.value = selected.retensi; // display field
-        }
-    });
-
     // Preview file name saat dipilih
     const fileInput = document.getElementById('file_path');
     const fileInfo = document.getElementById('file_info');

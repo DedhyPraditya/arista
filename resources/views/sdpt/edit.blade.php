@@ -27,7 +27,7 @@
 
                         <div class="form-group">
                             <label for="tanggal_surat">Tanggal Surat</label>
-                            <input type="date" name="tanggal_surat" id="tanggal_surat" class="form-control" value="{{ old('tanggal_surat', $sdpt->tanggal_surat) }}" required>
+                            <input type="date" name="tanggal_surat" id="tanggal_surat" class="form-control" value="{{ old('tanggal_surat', $sdpt->tanggal_surat ? \Carbon\Carbon::parse($sdpt->tanggal_surat)->format('Y-m-d') : '') }}" required>
                         </div>
 
                         <div class="form-group">
@@ -138,7 +138,7 @@
 
                         <div class="form-group">
                             <label for="lampiran">Lampiran</label>
-                            <input type="text" name="lampiran" id="lampiran" class="form-control" value="{{ old('lampiran', $sdpt->lampiran) }}" required>
+                            <input type="text" name="lampiran" id="lampiran" class="form-control" value="{{ old('lampiran', $sdpt->lampiran) }}" >
                         </div>
 
                         <div class="form-group">
