@@ -41,53 +41,66 @@ class KlasifikasiController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'kode' => 'required|max:50',
-            'urusan' => 'nullable|string|max:255',
-            'sub_urusan' => 'nullable|string',
-            'nama' => 'required|max:255',
-            'retensi' => 'nullable|integer|min:0',
-        ], [
-            'kode.required' => 'Kode klasifikasi wajib diisi.',
-            'nama.required' => 'Nama/judul wajib diisi.',
-            'retensi.integer' => 'Retensi harus berupa angka.',
-        ]);
+        try {
+            // Validasi dasar
+            $validated = $request->validate([
+                'kode' => 'required|max:50|unique:klasifikasi',
+                'urusan' => 'nullable|string|max:255',
+                'sub_urusan' => 'nullable|string|max:255',
+                'nama' => 'required|max:255',
+                'retensi' => 'nullable|integer|min:0',
+            ], [
+                'kode.required' => 'Kode klasifikasi wajib diisi.',
+                'kode.unique' => 'Kode klasifikasi sudah digunakan.',
+                'nama.required' => 'Nama/judul wajib diisi.',
+                'retensi.integer' => 'Retensi harus berupa angka.',
+            ]);
 
-        // Validasi: nama harus unik di seluruh tabel
-        $exists = \App\Models\Klasifikasi::where('nama', $validated['nama'])->exists();
-        if ($exists) {
-            return back()->withErrors(['Nama klasifikasi sudah digunakan.'])->withInput();
+            // Validasi nama harus unik
+            $existingNama = Klasifikasi::where('nama', $validated['nama'])->exists();
+            if ($existingNama) {
+                Alert::error('Gagal', 'Nama klasifikasi sudah digunakan.');
+                return back()->withInput();
+            }
+
+            // Validasi urusan harus unik jika diisi
+            if (!empty($validated['urusan'])) {
+                $existingUrusan = Klasifikasi::where('urusan', $validated['urusan'])->exists();
+                if ($existingUrusan) {
+                    Alert::error('Gagal', 'Urusan sudah digunakan.');
+                    return back()->withInput();
+                }
+            }
+
+            // Validasi sub urusan harus unik jika diisi
+            if (!empty($validated['sub_urusan'])) {
+                $existingSubUrusan = Klasifikasi::where('sub_urusan', $validated['sub_urusan'])->exists();
+                if ($existingSubUrusan) {
+                    Alert::error('Gagal', 'Sub urusan sudah digunakan.');
+                    return back()->withInput();
+                }
+            }
+
+            Klasifikasi::create($validated);
+            Alert::success('Berhasil', 'Data klasifikasi berhasil disimpan.');
+            return redirect()->route('klasifikasi.index');
+        } catch (\Exception $e) {
+            Alert::error('Error', 'Terjadi kesalahan saat menyimpan data.');
+            return back()->withInput();
         }
 
-        // Validasi custom: kombinasi kode, nama, urusan, sub_urusan harus unik
-        $exists = \App\Models\Klasifikasi::where('kode', $validated['kode'])
-            ->where('nama', $validated['nama'])
-            ->where('urusan', $validated['urusan'])
-            ->where('sub_urusan', $validated['sub_urusan'])
-            ->exists();
-        if ($exists) {
-            return back()->withErrors(['Data klasifikasi dengan kombinasi tersebut sudah ada.'])->withInput();
+        try {
+            Klasifikasi::create($validated);
+            Alert::success('Berhasil', 'Data klasifikasi berhasil disimpan.');
+            return redirect()->route('klasifikasi.index');
+        } catch (\Illuminate\Database\QueryException $e) {
+            if ($e->getCode() == 23000) {
+                Alert::error('Gagal', 'Kode klasifikasi sudah digunakan.');
+                return redirect()->route('klasifikasi.index');
+            }
+            Alert::error('Error', 'Terjadi kesalahan pada database.');
+            return redirect()->route('klasifikasi.index');
         }
-
-        // Derive hierarchy attributes from kode
-        $segments = explode('.', $validated['kode']);
-        $parentKode = count($segments) > 1 ? implode('.', array_slice($segments, 0, -1)) : null;
-        $level = count($segments) - 1; // root = 0
-        $isLeaf = true; // diasumsikan leaf saat dibuat; akan berubah jika nanti ditambah anak
-
-        // Normalisasi retensi: parent boleh null
-        if (!array_key_exists('retensi', $validated) || $validated['retensi'] === '' ) {
-            $validated['retensi'] = null;
-        }
-
-        $validated['parent_kode'] = $parentKode;
-        $validated['level'] = $level;
-        $validated['is_leaf'] = $isLeaf;
-
-        Klasifikasi::create($validated);
-
-        Alert::success('Berhasil', 'Data klasifikasi berhasil disimpan.');
-        return redirect()->route('klasifikasi.index');
     }
 
     public function edit($id)
@@ -100,44 +113,89 @@ class KlasifikasiController extends Controller
     {
         $klasifikasi = Klasifikasi::findOrFail($id);
 
-        $validated = $request->validate([
-            'kode' => 'required|max:50',
-            'urusan' => 'nullable|string|max:255',
-            'sub_urusan' => 'nullable|string',
-            'nama' => 'required|max:255',
-            'retensi' => 'nullable|integer|min:0',
-        ], [
-            'kode.required' => 'Kode klasifikasi wajib diisi.',
-            'nama.required' => 'Nama/judul wajib diisi.',
-            'retensi.integer' => 'Retensi harus berupa angka.',
-        ]);
+        try {
+            $validated = $request->validate([
+                'kode' => 'required|max:50',
+                'urusan' => 'nullable|string|max:255',
+                'sub_urusan' => 'nullable|string|max:255',
+                'nama' => 'required|max:255',
+                'retensi' => 'nullable|integer|min:0',
+            ], [
+                'kode.required' => 'Kode klasifikasi wajib diisi.',
+                'nama.required' => 'Nama/judul wajib diisi.',
+                'retensi.integer' => 'Retensi harus berupa angka.',
+            ]);
+            // Validasi kode unik kecuali untuk record yang sedang diupdate
+            $existingKode = Klasifikasi::where('kode', $validated['kode'])
+                ->where('id', '!=', $id)
+                ->exists();
+            if ($existingKode) {
+                Alert::error('Gagal', 'Kode klasifikasi sudah digunakan.');
+                return back()->withInput();
+            }
 
-        // Recalculate hierarchy (if kode berubah)
-        $segments = explode('.', $validated['kode']);
-        $parentKode = count($segments) > 1 ? implode('.', array_slice($segments, 0, -1)) : null;
-        $level = count($segments) - 1;
+            // Validasi nama unik
+            $existingNama = Klasifikasi::where('nama', $validated['nama'])
+                ->where('id', '!=', $id)
+                ->exists();
+            if ($existingNama) {
+                Alert::error('Gagal', 'Nama klasifikasi sudah digunakan.');
+                return back()->withInput();
+            }
 
-        if (!array_key_exists('retensi', $validated) || $validated['retensi'] === '') {
-            $validated['retensi'] = null; // parent atau tidak diisi
+            // Validasi urusan unik jika diisi
+            if (!empty($validated['urusan'])) {
+                $existingUrusan = Klasifikasi::where('urusan', $validated['urusan'])
+                    ->where('id', '!=', $id)
+                    ->exists();
+                if ($existingUrusan) {
+                    Alert::error('Gagal', 'Urusan sudah digunakan.');
+                    return back()->withInput();
+                }
+            }
+
+            // Validasi sub urusan unik jika diisi
+            if (!empty($validated['sub_urusan'])) {
+                $existingSubUrusan = Klasifikasi::where('sub_urusan', $validated['sub_urusan'])
+                    ->where('id', '!=', $id)
+                    ->exists();
+                if ($existingSubUrusan) {
+                    Alert::error('Gagal', 'Sub urusan sudah digunakan.');
+                    return back()->withInput();
+                }
+            }
+
+            // Recalculate hierarchy (if kode berubah)
+            $segments = explode('.', $validated['kode']);
+            $parentKode = count($segments) > 1 ? implode('.', array_slice($segments, 0, -1)) : null;
+            $level = count($segments) - 1;
+
+            if (!array_key_exists('retensi', $validated) || $validated['retensi'] === '') {
+                $validated['retensi'] = null;
+            }
+
+            $validated['parent_kode'] = $parentKode;
+            $validated['level'] = $level;
+
+            $klasifikasi->update($validated);
+            Alert::success('Berhasil', 'Data klasifikasi berhasil diupdate.');
+            return redirect()->route('klasifikasi.index');
+        } catch (\Exception $e) {
+            Alert::error('Error', 'Terjadi kesalahan saat mengupdate data.');
+            return back()->withInput();
         }
-
-        $validated['parent_kode'] = $parentKode;
-        $validated['level'] = $level;
-        // is_leaf tidak otomatis diubah di sini; perubahan struktur anak akan ditangani via backfill command
-
-        $klasifikasi->update($validated);
-
-        Alert::success('Berhasil', 'Data klasifikasi berhasil diupdate.');
-        return redirect()->route('klasifikasi.index');
     }
 
     public function destroy($id)
     {
         $klasifikasi = Klasifikasi::findOrFail($id);
-        $klasifikasi->delete();
-
-        Alert::success('Berhasil', 'Data klasifikasi berhasil dihapus.');
-        return redirect()->route('klasifikasi.index');
+        try {
+            $klasifikasi->delete();
+            Alert::success('Berhasil', 'Data klasifikasi berhasil dihapus.');
+            return redirect()->route('klasifikasi.index');
+        } catch (\Exception $e) {
+            Alert::error('Error', 'Gagal menghapus data klasifikasi.');
+            return redirect()->route('klasifikasi.index');
+        }
     }
-
 }
