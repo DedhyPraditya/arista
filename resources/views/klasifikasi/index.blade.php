@@ -11,12 +11,21 @@
         </button>
     </div>
 
-    <!-- Search Form -->
-    <form method="GET" action="{{ route('klasifikasi.index') }}" class="mb-3">
-        <div class="input-group">
-            <input type="text" name="search" class="form-control" placeholder="Cari kode atau nama klasifikasi..." value="{{ request('search') }}">
-            <div class="input-group-append">
-                <button class="btn btn-outline-primary" type="submit">Cari</button>
+    <!-- Filter Form -->
+    <form method="GET" action="{{ route('klasifikasi.index') }}" class="mb-3" id="filterForm">
+        <div class="row">
+            <div class="col-md-3">
+                <input type="text" name="filter_kode" class="form-control" placeholder="Filter Kode" value="{{ request('filter_kode') }}">
+            </div>
+            <div class="col-md-3">
+                <input type="text" name="filter_nama" class="form-control" placeholder="Filter Nama" value="{{ request('filter_nama') }}">
+            </div>
+            <div class="col-md-3">
+                <input type="text" name="filter_urusan" class="form-control" placeholder="Filter Urusan" value="{{ request('filter_urusan') }}">
+            </div>
+            <div class="col-md-3">
+                <button class="btn btn-outline-primary" type="submit">Filter</button>
+                <a href="{{ route('klasifikasi.index') }}" class="btn btn-outline-secondary ml-2">Reset</a>
             </div>
         </div>
     </form>

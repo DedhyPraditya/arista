@@ -12,12 +12,14 @@ class KlasifikasiController extends Controller
     public function index()
     {
         $query = Klasifikasi::query();
-        if (request()->has('search') && request('search')) {
-            $search = request('search');
-            $query->where(function($q) use ($search) {
-                $q->where('kode', 'like', "%$search%")
-                  ->orWhere('nama', 'like', "%$search%");
-            });
+        if (request('filter_kode')) {
+            $query->where('kode', 'like', '%' . request('filter_kode') . '%');
+        }
+        if (request('filter_nama')) {
+            $query->where('nama', 'like', '%' . request('filter_nama') . '%');
+        }
+        if (request('filter_urusan')) {
+            $query->where('urusan', 'like', '%' . request('filter_urusan') . '%');
         }
         $klasifikasi = $query->orderBy('kode', 'asc')->paginate(10);
 
