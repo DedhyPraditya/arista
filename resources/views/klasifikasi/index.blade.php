@@ -128,14 +128,12 @@
                             <span class="badge badge-primary badge-pill">Urusan</span> Urusan Utama
                         </label>
                         <input type="text" class="form-control" id="urusan" name="urusan" placeholder="Contoh: Pokok-Pokok Kebijakan Strategis">
-                        <small class="form-text text-muted">Kategori utama dari klasifikasi (A, B, C, dst)</small>
                     </div>
                     <div class="form-group">
                         <label for="sub_urusan">
                             <span class="badge badge-info badge-pill">Sub-urusan</span> Sub Urusan / Detail
                         </label>
                         <textarea class="form-control" id="sub_urusan" name="sub_urusan" rows="2" placeholder="Contoh: Rencana Pembangunan Jangka Panjang (RPJP)"></textarea>
-                        <small class="form-text text-muted">Detail atau penjabaran dari urusan utama (1, 2, 3, dst atau a, b, c, dst)</small>
                     </div>
                     <div class="form-group">
                         <label for="nama">Nama/Judul</label>
@@ -144,25 +142,6 @@
                     <div class="form-group">
                         <label for="retensi">Retensi (Tahun) <span class="badge badge-secondary">Optional</span></label>
                         <input type="number" class="form-control" id="retensi" name="retensi" placeholder="Isi hanya untuk klasifikasi leaf">
-                        <small class="form-text text-muted">Kosongkan jika ini kategori induk / akan punya sub-klasifikasi.</small>
-                    </div>
-                    <div class="form-group">
-                        <label for="klasifikasi_leaf">Klasifikasi Leaf (Optional)</label>
-                        <select name="klasifikasi_leaf" id="klasifikasi_leaf" class="form-control">
-                            <option value="">-- Pilih Klasifikasi Leaf --</option>
-                            @foreach ($klasifikasiTree as $parent)
-                                <optgroup label="{{ $parent->kode }} - {{ $parent->nama }}">
-                                    @foreach ($parent->children as $child)
-                                        <option value="{{ $child->id }}">
-                                            {{ $child->kode }} - {{ $child->nama }}
-                                            @if($child->urusan) | Urusan: {{ $child->urusan }} @endif
-                                            @if($child->sub_urusan) | Sub Urusan: {{ $child->sub_urusan }} @endif
-                                        </option>
-                                    @endforeach
-                                </optgroup>
-                            @endforeach
-                        </select>
-                        <small class="form-text text-muted">Pilih klasifikasi leaf jika ada, untuk mengaitkan dengan klasifikasi ini.</small>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -216,24 +195,6 @@
                         <label for="retensi">Retensi (Tahun) <span class="badge badge-secondary">Optional</span></label>
                         <input type="number" class="form-control" id="retensi" name="retensi" value="{{ old('retensi', $item->retensi) }}" placeholder="Isi hanya untuk leaf">
                         <small class="form-text text-muted">Biarkan kosong jika menjadi kategori induk.</small>
-                    </div>
-                    <div class="form-group">
-                        <label for="klasifikasi_leaf">Klasifikasi Leaf (Optional)</label>
-                        <select name="klasifikasi_leaf" id="klasifikasi_leaf" class="form-control">
-                            <option value="">-- Pilih Klasifikasi Leaf --</option>
-                            @foreach ($klasifikasiTree as $parent)
-                                <optgroup label="{{ $parent->kode }} - {{ $parent->nama }}">
-                                    @foreach ($parent->children as $child)
-                                        <option value="{{ $child->id }}" @if($child->id == old('klasifikasi_leaf', $item->klasifikasi_leaf)) selected @endif>
-                                            {{ $child->kode }} - {{ $child->nama }}
-                                            @if($child->urusan) | Urusan: {{ $child->urusan }} @endif
-                                            @if($child->sub_urusan) | Sub Urusan: {{ $child->sub_urusan }} @endif
-                                        </option>
-                                    @endforeach
-                                </optgroup>
-                            @endforeach
-                        </select>
-                        <small class="form-text text-muted">Pilih klasifikasi leaf jika ada, untuk mengaitkan dengan klasifikasi ini.</small>
                     </div>
                 </div>
                 <div class="modal-footer">
