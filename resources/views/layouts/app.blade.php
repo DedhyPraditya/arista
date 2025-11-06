@@ -121,6 +121,140 @@
             .select2-container--bootstrap4 .select2-results__option--highlighted {
                 background-color: #4e73df;
             }
+
+            /* Sidebar Scroll Fix */
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                height: 100vh;
+                width: 14rem;
+                z-index: 1000;
+            }
+
+            #accordionSidebar {
+                height: 100vh;
+                overflow-y: auto;
+                overflow-x: hidden;
+                padding-bottom: 2rem;
+            }
+
+            /* Adjust Content Wrapper */
+            #wrapper {
+                display: flex;
+            }
+
+            #content-wrapper {
+                margin-left: 14rem;
+                width: calc(100% - 14rem);
+            }
+
+            /* Responsive: Hide sidebar on mobile */
+            @media (max-width: 768px) {
+                .sidebar {
+                    width: 6.5rem;
+                }
+                #content-wrapper {
+                    margin-left: 6.5rem;
+                    width: calc(100% - 6.5rem);
+                }
+            }
+
+            @media (max-width: 576px) {
+                .sidebar {
+                    margin-left: -14rem;
+                }
+                #content-wrapper {
+                    margin-left: 0;
+                    width: 100%;
+                }
+                .sidebar.toggled {
+                    margin-left: 0;
+                }
+            }
+
+            /* Custom Scrollbar for Sidebar */
+            #accordionSidebar::-webkit-scrollbar {
+                width: 6px;
+            }
+
+            #accordionSidebar::-webkit-scrollbar-track {
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 10px;
+            }
+
+            #accordionSidebar::-webkit-scrollbar-thumb {
+                background: rgba(255, 255, 255, 0.3);
+                border-radius: 10px;
+            }
+
+            #accordionSidebar::-webkit-scrollbar-thumb:hover {
+                background: rgba(255, 255, 255, 0.5);
+            }
+
+            /* Sidebar User Info Kompak */
+            .sidebar-user-info {
+                padding: 1rem !important;
+            }
+
+            .sidebar-user-icon img {
+                width: 60px !important;
+                height: 60px !important;
+                margin-bottom: 0.5rem !important;
+            }
+
+            .sidebar-user-name {
+                font-size: 0.9rem;
+            }
+
+            /* Sidebar Divider Tipis */
+            .sidebar-divider {
+                margin: 0.5rem 0 !important;
+            }
+
+            /* Nav Item Spacing */
+            .sidebar .nav-item {
+                margin-bottom: 0;
+            }
+
+            .sidebar .nav-link {
+                padding: 0.75rem 1rem;
+            }
+
+            /* Collapse Inner Scroll */
+            .collapse-inner {
+                max-height: 300px;
+                overflow-y: auto;
+            }
+
+            .collapse-inner::-webkit-scrollbar {
+                width: 4px;
+            }
+
+            .collapse-inner::-webkit-scrollbar-thumb {
+                background: #d1d3e2;
+                border-radius: 10px;
+            }
+
+            /* Sidebar Heading Kompak */
+            .sidebar-heading {
+                font-size: 0.7rem;
+                padding: 0.5rem 1rem;
+                margin: 0;
+            }
+
+            /* Logout Button Fix */
+            .sidebar .nav-item form button.nav-link {
+                width: 100%;
+                text-align: left;
+                padding: 0.75rem 1rem;
+                border: none;
+                background: transparent;
+            }
+
+            .sidebar .nav-item form button.nav-link:hover {
+                background-color: rgba(255, 255, 255, 0.1);
+            }
     </style>
     @livewireStyles
 
