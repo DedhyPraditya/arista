@@ -32,7 +32,7 @@
                     <i class="fas fa-bell mr-2"></i>
                     Pusat Notifikasi
                 </h6>
-                <div id="notifications-container">
+                <div id="notifications-container" style="max-height: 400px; overflow-y: auto;">
                     <!-- Notifications will be loaded here -->
                     <div class="text-center py-3">
                         <div class="spinner-border spinner-border-sm text-primary" role="status">

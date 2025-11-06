@@ -188,26 +188,6 @@ class HktController extends Controller
             $validated['tahun_surat'] = (int)\Carbon\Carbon::parse($validated['tanggal_surat'])->year;
         }
 
-        $oldValidated = $validated; // Keep for later comparison
-        $validated = array_merge([], [
-            'nomor_surat' => $validated['nomor_surat'] ?? $hkt->nomor_surat,
-            'tanggal_surat' => $validated['tanggal_surat'] ?? $hkt->tanggal_surat,
-            'tahun_surat' => $validated['tahun_surat'] ?? $hkt->tahun_surat,
-            'pencipta_arsip' => $validated['pencipta_arsip'] ?? $hkt->pencipta_arsip,
-            'unit_pengelola_id' => $validated['unit_pengelola_id'] ?? $hkt->unit_pengelola_id,
-            'kode_klasifikasi_id' => $validated['kode_klasifikasi_id'] ?? $hkt->kode_klasifikasi_id,
-            'prihal' => $validated['prihal'] ?? $hkt->prihal,
-            'uraian_informasi' => $validated['uraian_informasi'] ?? $hkt->uraian_informasi,
-            'tingkat_perkembangan_id' => $validated['tingkat_perkembangan_id'] ?? $hkt->tingkat_perkembangan_id,
-            'lokasi_arsip_id' => $validated['lokasi_arsip_id'] ?? $hkt->lokasi_arsip_id,
-            'jumlah_item' => $validated['jumlah_item'] ?? $hkt->jumlah_item,
-            'lampiran' => $validated['lampiran'] ?? $hkt->lampiran,
-            'retensi' => 'required|integer',
-            'keterangan' => 'required|string|in:Aktif,Inaktif',
-            'nasib_akhir_id' => 'required|exists:nasib_akhir,id',
-            'file_path' => 'nullable|file|mimes:pdf|max:5120',
-        ]);
-
         Log::info('Validated Data for Update: ', $validated);
 
         // Handle file upload
