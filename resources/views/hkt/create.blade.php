@@ -182,6 +182,14 @@ $(document).ready(function() {
             }
         }
     });
+
+        // Initialize Select2 for Klasifikasi dropdown
+        $('#kode_klasifikasi_id').select2({
+            theme: 'bootstrap4',
+            placeholder: '-- Pilih Klasifikasi Leaf --',
+            allowClear: true,
+            width: '100%'
+        });
 });
 </script>
 @endpush
