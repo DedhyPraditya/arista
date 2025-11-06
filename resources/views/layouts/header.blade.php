@@ -27,12 +27,12 @@
                 <span class="badge badge-danger badge-counter" id="notification-badge" style="display: none;">0</span>
             </a>
             <!-- Dropdown - Alerts -->
-            <div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in" aria-labelledby="alertsDropdown" style="width: 380px;">
+            <div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in" aria-labelledby="alertsDropdown" style="width: 380px; max-height: none;">
                 <h6 class="dropdown-header">
                     <i class="fas fa-bell mr-2"></i>
                     Pusat Notifikasi
                 </h6>
-                <div id="notifications-container" style="max-height: 400px; overflow-y: auto;">
+                <div id="notifications-container">
                     <!-- Notifications will be loaded here -->
                     <div class="text-center py-3">
                         <div class="spinner-border spinner-border-sm text-primary" role="status">

@@ -80,9 +80,31 @@
             right: 0.25rem;
             margin-top: -0.25rem;
         }
-        .dropdown-list {
-            max-height: 400px;
+
+        /* Notification Dropdown Scroll Fix */
+        #notifications-container {
+            max-height: 300px;
             overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        /* Custom Scrollbar for Notification Container */
+        #notifications-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        #notifications-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        #notifications-container::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+
+        #notifications-container::-webkit-scrollbar-thumb:hover {
+            background: #555;
         }
     </style>
     @livewireStyles
