@@ -93,14 +93,18 @@ class HktController extends Controller
             $this->getAttributeNames()
         );
 
-        // Validasi leaf & ambil retensi
+        // Validasi klasifikasi & retensi wajib (tidak boleh null)
         $klasifikasi = Klasifikasi::find($validated['kode_klasifikasi_id']);
-        if ($klasifikasi) {
-            if (!$klasifikasi->isLeaf()) {
-                return back()->withErrors(['kode_klasifikasi_id' => 'Harus memilih klasifikasi tingkat akhir (leaf).'])->withInput();
-            }
-            $validated['retensi'] = $klasifikasi->retensi;
+        if (!$klasifikasi) {
+            return back()->withErrors(['kode_klasifikasi_id' => 'Klasifikasi tidak ditemukan.'])->withInput();
         }
+        if (!$klasifikasi->isLeaf()) {
+            return back()->withErrors(['kode_klasifikasi_id' => 'Harus memilih klasifikasi tingkat akhir (leaf).'])->withInput();
+        }
+        if (is_null($klasifikasi->retensi)) {
+            return back()->withErrors(['kode_klasifikasi_id' => 'Retensi pada klasifikasi belum diatur. Setel retensi di master klasifikasi terlebih dahulu.'])->withInput();
+        }
+        $validated['retensi'] = (int)$klasifikasi->retensi;
         // Sinkron tahun_surat dari tanggal_surat
         if (empty($validated['tahun_surat']) && !empty($validated['tanggal_surat'])) {
             $validated['tahun_surat'] = (int)\Carbon\Carbon::parse($validated['tanggal_surat'])->year;
@@ -123,10 +127,10 @@ class HktController extends Controller
         try {
             $hkt = Hkt::create($validated);
             Log::info('HKT record successfully created');
-            
+
             // Notifikasi Create
             notifyCreate('HKT', $hkt->nomor_surat, route('hkt.index'));
-            
+
             Alert::success('Berhasil', 'Data HKT berhasil disimpan.');
             return redirect()->route('hkt.index');
         } catch (\Exception $e) {
@@ -165,16 +169,19 @@ class HktController extends Controller
             $this->getAttributeNames()
         );
 
-        // Auto-fill retensi jika klasifikasi berubah
+        // Auto-fill retensi jika klasifikasi berubah (guard ketat)
         if (isset($validated['kode_klasifikasi_id'])) {
             $klasifikasi = Klasifikasi::find($validated['kode_klasifikasi_id']);
-            if ($klasifikasi) {
-                // Validasi harus leaf
-                if (!$klasifikasi->isLeaf()) {
-                    return back()->withErrors(['kode_klasifikasi_id' => 'Harus memilih klasifikasi tingkat akhir (leaf).'])->withInput();
-                }
-                $validated['retensi'] = $klasifikasi->retensi;
+            if (!$klasifikasi) {
+                return back()->withErrors(['kode_klasifikasi_id' => 'Klasifikasi tidak ditemukan.'])->withInput();
             }
+            if (!$klasifikasi->isLeaf()) {
+                return back()->withErrors(['kode_klasifikasi_id' => 'Harus memilih klasifikasi tingkat akhir (leaf).'])->withInput();
+            }
+            if (is_null($klasifikasi->retensi)) {
+                return back()->withErrors(['kode_klasifikasi_id' => 'Retensi pada klasifikasi belum diatur. Setel retensi di master klasifikasi terlebih dahulu.'])->withInput();
+            }
+            $validated['retensi'] = (int)$klasifikasi->retensi;
         }
         // Sinkron tahun_surat
         if (isset($validated['tanggal_surat'])) {
@@ -220,14 +227,17 @@ class HktController extends Controller
 
         $hkt->update($validated);
         Log::info('HKT with ID ' . $hkt->id . ' successfully updated');
-        
+
         // Notifikasi Update
         notifyUpdate('HKT', $hkt->nomor_surat, route('hkt.index'));
-        
+        Alert::success('Berhasil', 'Data HKT berhasil diupdate.');
+        return redirect()->route('hkt.index');
+    }
+
     public function destroy(Hkt $hkt)
     {
         Log::info('Destroy method called for HKT with ID: ' . $hkt->id);
-        
+
         // Simpan nomor surat sebelum dihapus
         $nomorSurat = $hkt->nomor_surat;
 
@@ -236,14 +246,10 @@ class HktController extends Controller
 
         $hkt->delete();
         Log::info('HKT with ID ' . $hkt->id . ' successfully deleted');
-        
+
         // Notifikasi Delete
         notifyDelete('HKT', $nomorSurat);
-        
-        Alert::success('Berhasil', 'Data HKT berhasil dihapus.');
-        return redirect()->route('hkt.index');
-    }   $hkt->delete();
-        Log::info('HKT with ID ' . $hkt->id . ' successfully deleted');
+
         Alert::success('Berhasil', 'Data HKT berhasil dihapus.');
         return redirect()->route('hkt.index');
     }

@@ -69,14 +69,18 @@ class KelembagaanController extends Controller
 
                 $validated = $request->validate($rules, $this->getValidationMessages(), $this->getAttributeNames());
 
-                // Validasi leaf & ambil retensi
+                // Validasi klasifikasi & retensi wajib
                 $klasifikasi = Klasifikasi::find($validated['kode_klasifikasi_id']);
-                if ($klasifikasi) {
-                    if (!$klasifikasi->isLeaf()) {
-                        return back()->withErrors(['kode_klasifikasi_id' => 'Harus memilih klasifikasi tingkat akhir (leaf).'])->withInput();
-                    }
-                    $validated['retensi'] = $klasifikasi->retensi;
+                if (!$klasifikasi) {
+                    return back()->withErrors(['kode_klasifikasi_id' => 'Klasifikasi tidak ditemukan.'])->withInput();
                 }
+                if (!$klasifikasi->isLeaf()) {
+                    return back()->withErrors(['kode_klasifikasi_id' => 'Harus memilih klasifikasi tingkat akhir (leaf).'])->withInput();
+                }
+                if (is_null($klasifikasi->retensi)) {
+                    return back()->withErrors(['kode_klasifikasi_id' => 'Retensi belum diatur pada klasifikasi ini. Setel retensi di menu klasifikasi.'])->withInput();
+                }
+                $validated['retensi'] = (int)$klasifikasi->retensi;
                 if (empty($validated['tahun_surat']) && !empty($validated['tanggal_surat'])) {
                     $validated['tahun_surat'] = (int)\Carbon\Carbon::parse($validated['tanggal_surat'])->year;
                 }
@@ -135,16 +139,19 @@ class KelembagaanController extends Controller
 
                 $validated = $request->validate($rules, $this->getValidationMessages(), $this->getAttributeNames());
 
-                // Auto-fill retensi jika klasifikasi berubah
+                // Auto-fill retensi jika klasifikasi berubah (guard ketat)
                 if (isset($validated['kode_klasifikasi_id'])) {
                     $klasifikasi = Klasifikasi::find($validated['kode_klasifikasi_id']);
-                    if ($klasifikasi) {
-                        // Validasi harus leaf
-                        if (!$klasifikasi->isLeaf()) {
-                            return back()->withErrors(['kode_klasifikasi_id' => 'Harus memilih klasifikasi tingkat akhir (leaf).'])->withInput();
-                        }
-                        $validated['retensi'] = $klasifikasi->retensi;
+                    if (!$klasifikasi) {
+                        return back()->withErrors(['kode_klasifikasi_id' => 'Klasifikasi tidak ditemukan.'])->withInput();
                     }
+                    if (!$klasifikasi->isLeaf()) {
+                        return back()->withErrors(['kode_klasifikasi_id' => 'Harus memilih klasifikasi tingkat akhir (leaf).'])->withInput();
+                    }
+                    if (is_null($klasifikasi->retensi)) {
+                        return back()->withErrors(['kode_klasifikasi_id' => 'Retensi belum diatur pada klasifikasi ini. Setel retensi di menu klasifikasi.'])->withInput();
+                    }
+                    $validated['retensi'] = (int)$klasifikasi->retensi;
                 }
                 if (isset($validated['tanggal_surat'])) {
                     $validated['tahun_surat'] = (int)\Carbon\Carbon::parse($validated['tanggal_surat'])->year;

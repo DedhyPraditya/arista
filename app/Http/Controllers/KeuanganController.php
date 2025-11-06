@@ -89,14 +89,18 @@ class KeuanganController extends Controller
 
                 $validated = $request->validate($rules, $this->getValidationMessages(), $this->getAttributeNames());
 
-                // Validasi leaf & ambil retensi
+                // Validasi klasifikasi & retensi wajib
                 $klasifikasi = Klasifikasi::find($validated['kode_klasifikasi_id']);
-                if ($klasifikasi) {
-                    if (!$klasifikasi->isLeaf()) {
-                        return back()->withErrors(['kode_klasifikasi_id' => 'Harus memilih klasifikasi tingkat akhir (leaf).'])->withInput();
-                    }
-                    $validated['retensi'] = $klasifikasi->retensi;
+                if (!$klasifikasi) {
+                    return back()->withErrors(['kode_klasifikasi_id' => 'Klasifikasi tidak ditemukan.'])->withInput();
                 }
+                if (!$klasifikasi->isLeaf()) {
+                    return back()->withErrors(['kode_klasifikasi_id' => 'Harus memilih klasifikasi tingkat akhir (leaf).'])->withInput();
+                }
+                if (is_null($klasifikasi->retensi)) {
+                    return back()->withErrors(['kode_klasifikasi_id' => 'Retensi belum diatur pada klasifikasi ini. Setel retensi di menu klasifikasi.'])->withInput();
+                }
+                $validated['retensi'] = (int)$klasifikasi->retensi;
                 // Sinkron tahun_surat
                 if (empty($validated['tahun_surat']) && !empty($validated['tanggal_surat'])) {
                     $validated['tahun_surat'] = (int)\Carbon\Carbon::parse($validated['tanggal_surat'])->year;
@@ -118,10 +122,10 @@ class KeuanganController extends Controller
 
                 // Create the Keuangan record
                 $keuangan = Keuangan::create($validated);
-                
+
                 // Notifikasi Create
                 notifyCreate('Keuangan', $keuangan->nomor_surat, route('keuangan.index'));
-                
+
                 Alert::success('Berhasil', 'Data berhasil disimpan.');
                 Log::info('KEUANGAN record successfully created');
                 return redirect()->route('keuangan.index');
@@ -164,16 +168,19 @@ class KeuanganController extends Controller
                 $validated = $request->validate($rules, $this->getValidationMessages(), $this->getAttributeNames());
                 Log::info('Validated Data for Update: ', $validated);
 
-                // Auto-fill retensi jika klasifikasi berubah
+                // Auto-fill retensi jika klasifikasi berubah (guard ketat)
                 if (isset($validated['kode_klasifikasi_id'])) {
                     $klasifikasi = Klasifikasi::find($validated['kode_klasifikasi_id']);
-                    if ($klasifikasi) {
-                        // Validasi harus leaf
-                        if (!$klasifikasi->isLeaf()) {
-                            return back()->withErrors(['kode_klasifikasi_id' => 'Harus memilih klasifikasi tingkat akhir (leaf).'])->withInput();
-                        }
-                        $validated['retensi'] = $klasifikasi->retensi;
+                    if (!$klasifikasi) {
+                        return back()->withErrors(['kode_klasifikasi_id' => 'Klasifikasi tidak ditemukan.'])->withInput();
                     }
+                    if (!$klasifikasi->isLeaf()) {
+                        return back()->withErrors(['kode_klasifikasi_id' => 'Harus memilih klasifikasi tingkat akhir (leaf).'])->withInput();
+                    }
+                    if (is_null($klasifikasi->retensi)) {
+                        return back()->withErrors(['kode_klasifikasi_id' => 'Retensi belum diatur pada klasifikasi ini. Setel retensi di menu klasifikasi.'])->withInput();
+                    }
+                    $validated['retensi'] = (int)$klasifikasi->retensi;
                 }
                 // Sinkron tahun_surat
                 if (isset($validated['tanggal_surat'])) {
@@ -196,10 +203,10 @@ class KeuanganController extends Controller
 
                 $keuangan->update($validated);
                 Log::info('Keuangan with ID ' . $keuangan->id . ' successfully updated');
-                
+
                 // Notifikasi Update
                 notifyUpdate('Keuangan', $keuangan->nomor_surat, route('keuangan.index'));
-                
+
                 Alert::success('Berhasil', 'Data Keuangan berhasil diupdate.');
                 return redirect()->route('keuangan.index');
 
@@ -214,7 +221,7 @@ class KeuanganController extends Controller
     public function destroy(Keuangan $keuangan)
     {
         Log::info('Destroy method called for Keuangan with ID: ' . $keuangan->id);
-        
+
         // Simpan nomor surat sebelum dihapus
         $nomorSurat = $keuangan->nomor_surat;
 
@@ -223,10 +230,10 @@ class KeuanganController extends Controller
 
         $keuangan->delete();
         Log::info('Keuangan with ID ' . $keuangan->id . ' successfully deleted');
-        
+
         // Notifikasi Delete
         notifyDelete('Keuangan', $nomorSurat);
-        
+
         Alert::success('Berhasil', 'Data Keuangan berhasil dihapus.');
         return redirect()->route('keuangan.index');
     }
